@@ -1,0 +1,987 @@
+// แบบทดสอบวัดระดับภาษาอังกฤษ CEFR A1–C2 · 60 ข้อ · เนื้อหาเดียวกับ cefr.json · answer = ดัชนีตัวเลือกที่ถูก (0-3) · ระบบสลับตัวเลือกตอนสอบ · ไม่แสดงเฉลยให้นักเรียน
+window.QB = window.QB || {};
+window.QB.cefr = {
+ "key": "cefr",
+ "name": "แบบทดสอบวัดระดับภาษาอังกฤษ CEFR",
+ "version": "cefr-v1-2569-10-17",
+ "levels": [
+  "A1",
+  "A2",
+  "B1",
+  "B2",
+  "C1",
+  "C2"
+ ],
+ "levelInfo": {
+  "A1": {
+   "name": "ผู้เริ่มต้น (Beginner)",
+   "can": "เข้าใจและใช้ประโยคง่าย ๆ ในชีวิตประจำวัน แนะนำตัว ถาม-ตอบเรื่องตัวเอง ครอบครัว สิ่งของใกล้ตัว"
+  },
+  "A2": {
+   "name": "พื้นฐาน (Elementary)",
+   "can": "สื่อสารเรื่องคุ้นเคย เช่น ซื้อของ การเดินทาง เล่าเรื่องในอดีตสั้น ๆ อ่านข้อความสั้นอย่างอีเมลหรือประกาศได้"
+  },
+  "B1": {
+   "name": "ระดับกลาง (Intermediate)",
+   "can": "เข้าใจใจความหลักของเรื่องคุ้นเคย เล่าประสบการณ์ ให้เหตุผลและความเห็นสั้น ๆ รับมือสถานการณ์ส่วนใหญ่ขณะเดินทางได้"
+  },
+  "B2": {
+   "name": "กลางค่อนสูง (Upper-Intermediate)",
+   "can": "เข้าใจบทความที่ซับซ้อนขึ้น แยกข้อเท็จจริงกับความเห็น สื่อสารคล่องและสุภาพ โต้แย้งพร้อมเหตุผล"
+  },
+  "C1": {
+   "name": "สูง (Advanced)",
+   "can": "เข้าใจข้อความยาวและนัยแฝง ใช้ภาษาได้ยืดหยุ่นทั้งทางสังคม วิชาการ และการทำงาน เลือกระดับภาษาได้เหมาะสม"
+  },
+  "C2": {
+   "name": "เชี่ยวชาญ (Proficient)",
+   "can": "เข้าใจแทบทุกสิ่งที่อ่าน จับน้ำเสียง การประชด สำนวน และความหมายละเอียดอ่อนได้แม่นยำใกล้เคียงเจ้าของภาษา"
+  }
+ },
+ "skills": {
+  "vocab": "คำศัพท์",
+  "grammar": "ไวยากรณ์",
+  "reading": "การอ่าน",
+  "functional": "ภาษาเพื่อการสื่อสาร"
+ },
+ "passages": {
+  "A1": {
+   "title": "Nok's Family",
+   "text": "Hi! I'm Nok. I am twelve years old. I live in a small house near a river with my parents and my little brother, Pong. Every Saturday, we go to the market together. I like mangoes, but Pong likes bananas."
+  },
+  "A2": {
+   "title": "An email from Mai",
+   "text": "Dear Ploy,\nThanks for your message. I'm sorry I couldn't come to your party on Friday. I had a bad cold and stayed in bed all weekend. I feel much better now. Are you free next Saturday? We could go to the new café in town. I'll pay!\nLove,\nMai"
+  },
+  "B1": {
+   "title": "No Plastic Monday",
+   "text": "Last year, our school started a \"No Plastic Monday\" project. On Mondays, students bring their own bottles and lunch boxes, and the canteen does not sell drinks in plastic cups. At first, many students forgot, and some complained that it was inconvenient. However, after three months, the amount of plastic waste collected on Mondays fell by almost 70 percent. Because of this success, the student council now wants to extend the project to every day of the week."
+  },
+  "B2": {
+   "title": "Farms on the Roof",
+   "text": "Urban rooftop farms are often praised as a solution to food shortages in big cities. Supporters point out that they reduce the distance food travels and make use of empty space. Critics, however, argue that rooftop farms can only produce a small fraction of what a city needs, and that the cost of strengthening buildings to carry heavy soil is often underestimated. Perhaps the greatest value of these farms is not the amount of food they grow, but the way they reconnect city residents with where their food comes from."
+  },
+  "C1": {
+   "title": "Too Many Choices?",
+   "text": "It is tempting to assume that the more choices we have, the happier we become. Yet a growing body of research suggests otherwise. When faced with dozens of nearly identical options, many people experience not freedom but anxiety: the fear of choosing wrongly can outweigh the pleasure of choosing at all. Paradoxically, those who insist on finding the \"best\" option often end up less satisfied than those who settle for one that is simply good enough. This does not mean that choice is harmful in itself; rather, beyond a certain point, additional options yield diminishing returns."
+  },
+  "C2": {
+   "title": "A Bold Reimagining",
+   "text": "The town council's latest brochure describes the new shopping complex as \"a bold reimagining of our heritage\". Long-time residents may find this an interesting choice of words, given that the heritage in question, a row of century-old wooden shophouses, was demolished to make way for it. To be fair, the developers have preserved one doorframe, now mounted in the car park beside a plaque explaining its historical significance. One can only admire the efficiency with which a hundred years of history has been reduced to a single, easily photographed object."
+  }
+ },
+ "questions": [
+  {
+   "id": "A1-01",
+   "level": "A1",
+   "skill": "vocab",
+   "topic": "Family",
+   "q": "My mother's brother is my ___.",
+   "choices": [
+    "aunt",
+    "uncle",
+    "cousin",
+    "grandfather"
+   ],
+   "answer": 1,
+   "explain": "พี่ชายหรือน้องชายของแม่ = uncle (ลุง/น้า) · aunt = ป้า/น้า (ผู้หญิง) · cousin = ลูกพี่ลูกน้อง · grandfather = ปู่/ตา"
+  },
+  {
+   "id": "A1-02",
+   "level": "A1",
+   "skill": "vocab",
+   "topic": "Food & drink",
+   "q": "I drink a glass of ___ every morning.",
+   "choices": [
+    "milk",
+    "bread",
+    "rice",
+    "egg"
+   ],
+   "answer": 0,
+   "explain": "กริยา drink (ดื่ม) ใช้กับของเหลว milk (นม) จึงถูก ส่วน bread (ขนมปัง) rice (ข้าว) egg (ไข่) ต้องใช้ eat (กิน)"
+  },
+  {
+   "id": "A1-03",
+   "level": "A1",
+   "skill": "vocab",
+   "topic": "Places in town",
+   "q": "You can borrow books from a ___.",
+   "choices": [
+    "bank",
+    "library",
+    "hospital",
+    "post office"
+   ],
+   "answer": 1,
+   "explain": "library = ห้องสมุด เป็นที่ยืมหนังสือ · bank = ธนาคาร · hospital = โรงพยาบาล · post office = ที่ทำการไปรษณีย์"
+  },
+  {
+   "id": "A1-04",
+   "level": "A1",
+   "skill": "grammar",
+   "topic": "Verb to be",
+   "q": "My sister ___ a student.",
+   "choices": [
+    "am",
+    "are",
+    "be",
+    "is"
+   ],
+   "answer": 3,
+   "explain": "ประธานเอกพจน์บุรุษที่ 3 (My sister = she) ใช้ is · am ใช้กับ I · are ใช้กับ you/we/they · be ต้องผันก่อนใช้"
+  },
+  {
+   "id": "A1-05",
+   "level": "A1",
+   "skill": "grammar",
+   "topic": "Present simple",
+   "q": "Tom ___ football after school every day.",
+   "choices": [
+    "plays",
+    "play",
+    "playing",
+    "is play"
+   ],
+   "answer": 0,
+   "explain": "every day บอกกิจวัตร → Present Simple ประธาน Tom เป็นเอกพจน์ กริยาเติม s → plays · 'is play' ผิดโครงสร้าง"
+  },
+  {
+   "id": "A1-06",
+   "level": "A1",
+   "skill": "grammar",
+   "topic": "There is / There are",
+   "q": "There ___ two cats under the table.",
+   "choices": [
+    "is",
+    "am",
+    "be",
+    "are"
+   ],
+   "answer": 3,
+   "explain": "two cats เป็นพหูพจน์ จึงใช้ There are · There is ใช้กับนามเอกพจน์หรือนามนับไม่ได้"
+  },
+  {
+   "id": "A1-07",
+   "level": "A1",
+   "skill": "reading",
+   "topic": "Reading: personal information",
+   "q": "Where does Nok live?",
+   "choices": [
+    "near a market",
+    "in a big house",
+    "near a river",
+    "near a school"
+   ],
+   "answer": 2,
+   "explain": "บทอ่านบอกว่า 'I live in a small house near a river' → อยู่ใกล้แม่น้ำ (บ้านหลังเล็ก ไม่ใช่หลังใหญ่ และตลาดเป็นที่ที่ไปทุกวันเสาร์)",
+   "passage": "A1"
+  },
+  {
+   "id": "A1-08",
+   "level": "A1",
+   "skill": "reading",
+   "topic": "Reading: likes and dislikes",
+   "q": "What does Pong like?",
+   "choices": [
+    "mangoes",
+    "the river",
+    "bananas",
+    "Saturday"
+   ],
+   "answer": 2,
+   "explain": "'I like mangoes, but Pong likes bananas.' → ป้องชอบกล้วย ส่วนนกชอบมะม่วง",
+   "passage": "A1"
+  },
+  {
+   "id": "A1-09",
+   "level": "A1",
+   "skill": "functional",
+   "topic": "Greetings",
+   "q": "A: How are you?\nB: ___",
+   "choices": [
+    "I'm twelve.",
+    "I'm fine, thank you.",
+    "I'm a student.",
+    "I'm from Thailand."
+   ],
+   "answer": 1,
+   "explain": "How are you? ถามความเป็นอยู่/สุขภาพ ตอบ I'm fine, thank you. · I'm twelve. ตอบเรื่องอายุ · I'm a student. ตอบอาชีพ · I'm from Thailand. ตอบว่ามาจากไหน"
+  },
+  {
+   "id": "A1-10",
+   "level": "A1",
+   "skill": "functional",
+   "topic": "Telling the time",
+   "q": "A: What time is it?\nB: ___",
+   "choices": [
+    "It's half past seven.",
+    "It's Monday.",
+    "It's hot.",
+    "It's in the bag."
+   ],
+   "answer": 0,
+   "explain": "What time is it? ถามเวลา → It's half past seven. (เจ็ดโมงครึ่ง) · It's Monday. ตอบวัน · It's hot. ตอบอากาศ · It's in the bag. ตอบที่อยู่ของสิ่งของ"
+  },
+  {
+   "id": "A2-01",
+   "level": "A2",
+   "skill": "vocab",
+   "topic": "Weather",
+   "q": "It's very ___ today, so wear a warm coat and gloves.",
+   "choices": [
+    "cold",
+    "hot",
+    "sunny",
+    "dry"
+   ],
+   "answer": 0,
+   "explain": "ต้องใส่เสื้อโค้ทกันหนาวและถุงมือ แสดงว่าอากาศหนาว → cold · hot = ร้อน · sunny = แดดจัด · dry = แห้ง"
+  },
+  {
+   "id": "A2-02",
+   "level": "A2",
+   "skill": "vocab",
+   "topic": "Collocations: do / make",
+   "q": "I usually ___ my homework after dinner.",
+   "choices": [
+    "do",
+    "make",
+    "take",
+    "play"
+   ],
+   "answer": 0,
+   "explain": "คำที่ใช้คู่กันตายตัว (collocation) คือ do homework (ทำการบ้าน) ไม่ใช้ make homework"
+  },
+  {
+   "id": "A2-03",
+   "level": "A2",
+   "skill": "vocab",
+   "topic": "Shopping",
+   "q": "These shoes are too small. Do you have them in a bigger ___?",
+   "choices": [
+    "price",
+    "size",
+    "colour",
+    "shop"
+   ],
+   "answer": 1,
+   "explain": "รองเท้าคับเกินไป จึงขอ 'ขนาด' ที่ใหญ่กว่า → size · price = ราคา · colour = สี · shop = ร้าน"
+  },
+  {
+   "id": "A2-04",
+   "level": "A2",
+   "skill": "grammar",
+   "topic": "Past simple",
+   "q": "We ___ to Chiang Mai last weekend.",
+   "choices": [
+    "go",
+    "goes",
+    "have gone",
+    "went"
+   ],
+   "answer": 3,
+   "explain": "last weekend บอกเวลาในอดีตที่จบแล้ว ใช้ Past Simple → went (go เป็นกริยาอปกติ) · Present Perfect (have gone) ใช้กับคำบอกเวลาอดีตที่ชัดเจนไม่ได้"
+  },
+  {
+   "id": "A2-05",
+   "level": "A2",
+   "skill": "grammar",
+   "topic": "Comparatives",
+   "q": "My bag is ___ than yours.",
+   "choices": [
+    "heavy",
+    "heavier",
+    "heaviest",
+    "more heavy"
+   ],
+   "answer": 1,
+   "explain": "มี than → ใช้ขั้นกว่า heavy ลงท้าย y เปลี่ยน y เป็น i แล้วเติม er → heavier · ไม่ใช้ more กับคำสองพยางค์ที่ลงท้าย -y แบบนี้"
+  },
+  {
+   "id": "A2-06",
+   "level": "A2",
+   "skill": "grammar",
+   "topic": "Countable / uncountable",
+   "q": "How ___ water do you drink every day?",
+   "choices": [
+    "many",
+    "a lot",
+    "much",
+    "few"
+   ],
+   "answer": 2,
+   "explain": "water เป็นนามนับไม่ได้ ใช้ How much · How many ใช้กับนามนับได้พหูพจน์ · 'How a lot' และ 'How few' ไม่ใช้ในลักษณะนี้"
+  },
+  {
+   "id": "A2-07",
+   "level": "A2",
+   "skill": "reading",
+   "topic": "Reading: email (reason)",
+   "q": "Why didn't Mai go to the party?",
+   "choices": [
+    "She was busy at work.",
+    "She forgot about it.",
+    "She was at a café.",
+    "She was ill."
+   ],
+   "answer": 3,
+   "explain": "'I had a bad cold and stayed in bed all weekend.' → ไม่สบาย จึงไปงานไม่ได้ ตอบ She was ill.",
+   "passage": "A2"
+  },
+  {
+   "id": "A2-08",
+   "level": "A2",
+   "skill": "reading",
+   "topic": "Reading: email (plans)",
+   "q": "What does Mai want to do next Saturday?",
+   "choices": [
+    "have another party",
+    "stay in bed",
+    "go to a café with Ploy",
+    "buy a present for Ploy"
+   ],
+   "answer": 2,
+   "explain": "'Are you free next Saturday? We could go to the new café in town.' → ชวนพลอยไปร้านกาแฟเปิดใหม่",
+   "passage": "A2"
+  },
+  {
+   "id": "A2-09",
+   "level": "A2",
+   "skill": "functional",
+   "topic": "In a shop",
+   "q": "Shop assistant: Can I help you?\nCustomer: ___",
+   "choices": [
+    "Yes, you can't.",
+    "No, I'm not helping.",
+    "Here you are.",
+    "Yes, I'm looking for a T-shirt."
+   ],
+   "answer": 3,
+   "explain": "พนักงานถามว่าให้ช่วยไหม ลูกค้าตอบว่ากำลังหาเสื้อยืด · 'Here you are.' ใช้ตอนยื่นของให้ ไม่ใช่ตอบคำถามนี้"
+  },
+  {
+   "id": "A2-10",
+   "level": "A2",
+   "skill": "functional",
+   "topic": "Making suggestions",
+   "q": "A: Let's go swimming this afternoon.\nB: ___",
+   "choices": [
+    "Yes, I went.",
+    "No, I'm swimming yesterday.",
+    "Good idea! What time?",
+    "You're welcome."
+   ],
+   "answer": 2,
+   "explain": "Let's … เป็นการชวน ตอบรับด้วย Good idea! แล้วถามเวลาต่อ · You're welcome. ใช้ตอบเมื่อมีคนขอบคุณ · ตัวเลือกอื่นผิด tense"
+  },
+  {
+   "id": "B1-01",
+   "level": "B1",
+   "skill": "vocab",
+   "topic": "Phrasal verbs",
+   "q": "The meeting was ___ because the manager was ill.",
+   "choices": [
+    "put on",
+    "taken after",
+    "called off",
+    "looked up"
+   ],
+   "answer": 2,
+   "explain": "called off (call off) = ยกเลิก (ผู้จัดการป่วยจึงยกเลิกประชุม) · put on = สวมใส่/จัดแสดง · take after = หน้าตา/นิสัยเหมือน (ญาติผู้ใหญ่) · look up = ค้นหา (คำศัพท์)"
+  },
+  {
+   "id": "B1-02",
+   "level": "B1",
+   "skill": "vocab",
+   "topic": "Personality",
+   "q": "She is very ___; she always tells the truth.",
+   "choices": [
+    "generous",
+    "lazy",
+    "shy",
+    "honest"
+   ],
+   "answer": 3,
+   "explain": "พูดความจริงเสมอ = honest (ซื่อสัตย์) · generous = ใจกว้าง ชอบให้ · lazy = ขี้เกียจ · shy = ขี้อาย"
+  },
+  {
+   "id": "B1-03",
+   "level": "B1",
+   "skill": "vocab",
+   "topic": "Environment",
+   "q": "We should ___ plastic bottles instead of throwing them away.",
+   "choices": [
+    "recycle",
+    "pollute",
+    "waste",
+    "destroy"
+   ],
+   "answer": 0,
+   "explain": "instead of throwing them away (แทนที่จะทิ้ง) → นำกลับมาใช้ใหม่ = recycle · pollute = ทำให้เป็นมลพิษ · waste = ใช้สิ้นเปลือง · destroy = ทำลาย"
+  },
+  {
+   "id": "B1-04",
+   "level": "B1",
+   "skill": "grammar",
+   "topic": "Present perfect",
+   "q": "I ___ in this town since 2020.",
+   "choices": [
+    "live",
+    "lived",
+    "have lived",
+    "am living"
+   ],
+   "answer": 2,
+   "explain": "since 2020 = ตั้งแต่ปี 2020 จนถึงตอนนี้ ใช้ Present Perfect → have lived · Present Simple/Continuous/Past Simple ใช้กับ since ในความหมายนี้ไม่ได้"
+  },
+  {
+   "id": "B1-05",
+   "level": "B1",
+   "skill": "grammar",
+   "topic": "First conditional",
+   "q": "If it ___ tomorrow, we will stay at home.",
+   "choices": [
+    "will rain",
+    "rained",
+    "would rain",
+    "rains"
+   ],
+   "answer": 3,
+   "explain": "เงื่อนไขแบบที่ 1 (เป็นไปได้จริงในอนาคต): If + Present Simple, … will + V1 → If it rains · ไม่ใช้ will ในประโยค If"
+  },
+  {
+   "id": "B1-06",
+   "level": "B1",
+   "skill": "grammar",
+   "topic": "Passive voice (past)",
+   "q": "This temple ___ more than 500 years ago.",
+   "choices": [
+    "built",
+    "was built",
+    "is built",
+    "has built"
+   ],
+   "answer": 1,
+   "explain": "วัดไม่ได้สร้างเอง แต่ 'ถูกสร้าง' และเกิดในอดีต (500 years ago) → Passive แบบอดีต was + V3 = was built"
+  },
+  {
+   "id": "B1-07",
+   "level": "B1",
+   "skill": "reading",
+   "topic": "Reading: details",
+   "q": "What happened at the beginning of the project?",
+   "choices": [
+    "Some students found it difficult to remember.",
+    "Plastic waste fell by 70 percent immediately.",
+    "The canteen stopped selling food.",
+    "Every student supported it."
+   ],
+   "answer": 0,
+   "explain": "'At first, many students forgot, and some complained…' → ช่วงแรกหลายคนลืม · ขยะลดลง 70% หลังผ่านไป 3 เดือน ไม่ใช่ทันที · โรงอาหารเพียงงดแก้วพลาสติก",
+   "passage": "B1"
+  },
+  {
+   "id": "B1-08",
+   "level": "B1",
+   "skill": "reading",
+   "topic": "Reading: future plans",
+   "q": "What does the student council plan to do?",
+   "choices": [
+    "stop the project",
+    "run the project on all school days",
+    "sell plastic cups again on Mondays",
+    "start the project only in the canteen"
+   ],
+   "answer": 1,
+   "explain": "'the student council now wants to extend the project to every day of the week' → ขยายโครงการเป็นทุกวัน",
+   "passage": "B1"
+  },
+  {
+   "id": "B1-09",
+   "level": "B1",
+   "skill": "functional",
+   "topic": "Responding to complaints",
+   "q": "Guest: I'm afraid there's a problem with my room. The air conditioner isn't working.\nReceptionist: ___",
+   "choices": [
+    "Thank you. Have a nice day.",
+    "I'm sorry about that. I'll send someone to fix it right away.",
+    "That's great news!",
+    "No problem. It's working well."
+   ],
+   "answer": 1,
+   "explain": "แขกแจ้งปัญหา พนักงานควรขอโทษและเสนอทางแก้ → I'm sorry about that. I'll send someone to fix it right away. ตัวเลือกอื่นไม่ตอบสนองต่อปัญหา"
+  },
+  {
+   "id": "B1-10",
+   "level": "B1",
+   "skill": "functional",
+   "topic": "Agreeing",
+   "q": "A: I think students should wear uniforms.\nB: ___ Uniforms make everyone look equal.",
+   "choices": [
+    "I don't think so.",
+    "That's not true.",
+    "I couldn't agree more.",
+    "I'm not sure about that."
+   ],
+   "answer": 2,
+   "explain": "B ให้เหตุผลสนับสนุน (ชุดนักเรียนทำให้ทุกคนดูเท่าเทียม) จึงต้องเป็นการเห็นด้วย I couldn't agree more. = เห็นด้วยอย่างยิ่ง · อีก 3 ตัวเลือกแสดงการไม่เห็นด้วย/ไม่แน่ใจ"
+  },
+  {
+   "id": "B2-01",
+   "level": "B2",
+   "skill": "vocab",
+   "topic": "Collocations: formal",
+   "q": "The government has ___ new measures to reduce air pollution.",
+   "choices": [
+    "risen",
+    "introduced",
+    "arrived",
+    "occurred"
+   ],
+   "answer": 1,
+   "explain": "introduced (introduce measures) = ออก/นำมาตรการมาใช้ · rise, arrive, occur เป็นกริยาที่ไม่มีกรรม (intransitive) จึงตามด้วย measures ไม่ได้"
+  },
+  {
+   "id": "B2-02",
+   "level": "B2",
+   "skill": "vocab",
+   "topic": "Word formation",
+   "q": "Her ___ to help others made her popular in the community.",
+   "choices": [
+    "willingness",
+    "willing",
+    "willingly",
+    "unwilling"
+   ],
+   "answer": 0,
+   "explain": "หลัง Her ต้องเป็นคำนาม → willingness (ความเต็มใจ) · willing/unwilling เป็นคุณศัพท์ · willingly เป็นกริยาวิเศษณ์"
+  },
+  {
+   "id": "B2-03",
+   "level": "B2",
+   "skill": "vocab",
+   "topic": "Phrasal expressions",
+   "q": "I can't ___ my mind about which university to apply to.",
+   "choices": [
+    "take up",
+    "make up",
+    "set up",
+    "bring up"
+   ],
+   "answer": 1,
+   "explain": "make up one's mind = ตัดสินใจ · take up = เริ่มทำ (งานอดิเรก) · set up = ก่อตั้ง · bring up = เลี้ยงดู/หยิบยกประเด็น"
+  },
+  {
+   "id": "B2-04",
+   "level": "B2",
+   "skill": "grammar",
+   "topic": "Third conditional",
+   "q": "If I ___ about the traffic, I would have left earlier.",
+   "choices": [
+    "knew",
+    "have known",
+    "would know",
+    "had known"
+   ],
+   "answer": 3,
+   "explain": "ประโยคหลัง would have + V3 = เงื่อนไขแบบที่ 3 (สมมติตรงข้ามอดีต) ประโยค If ใช้ Past Perfect → had known"
+  },
+  {
+   "id": "B2-05",
+   "level": "B2",
+   "skill": "grammar",
+   "topic": "Reported questions",
+   "q": "She asked me where ___.",
+   "choices": [
+    "I was going",
+    "was I going",
+    "did I go",
+    "am I going"
+   ],
+   "answer": 0,
+   "explain": "คำถามในประโยคบอกเล่า (reported question) เรียงแบบประโยคบอกเล่า ประธาน + กริยา และถอย tense → where I was going · ตัวเลือกอื่นเรียงแบบคำถาม"
+  },
+  {
+   "id": "B2-06",
+   "level": "B2",
+   "skill": "grammar",
+   "topic": "Wish (present)",
+   "q": "I wish I ___ more time to finish the project — the deadline is tomorrow.",
+   "choices": [
+    "had",
+    "have",
+    "will have",
+    "would have had"
+   ],
+   "answer": 0,
+   "explain": "wish เกี่ยวกับปัจจุบัน (ตอนนี้มีเวลาไม่พอ) ใช้ Past Simple → I wish I had · would have had ใช้เสียดายเรื่องในอดีต"
+  },
+  {
+   "id": "B2-07",
+   "level": "B2",
+   "skill": "reading",
+   "topic": "Reading: opinions of others",
+   "q": "According to the critics, what is one problem with rooftop farms?",
+   "choices": [
+    "They increase the distance food travels.",
+    "They use too much empty land outside the city.",
+    "Preparing buildings for them can be more expensive than expected.",
+    "They grow food that people do not want."
+   ],
+   "answer": 2,
+   "explain": "ผู้วิจารณ์บอกว่า 'the cost of strengthening buildings … is often underestimated' = ค่าเสริมโครงสร้างอาคารมักสูงกว่าที่คาด · ฟาร์มบนหลังคาช่วย 'ลด' ระยะทางขนส่ง",
+   "passage": "B2"
+  },
+  {
+   "id": "B2-08",
+   "level": "B2",
+   "skill": "reading",
+   "topic": "Reading: writer's view",
+   "q": "What is the writer's own view?",
+   "choices": [
+    "They will soon solve food shortages in cities.",
+    "They should be banned because they are too costly.",
+    "They are less useful than supporters claim and have no real value.",
+    "Their main benefit may be educational rather than productive."
+   ],
+   "answer": 3,
+   "explain": "ประโยคสุดท้าย 'Perhaps the greatest value … is not the amount of food they grow, but the way they reconnect city residents…' → คุณค่าหลักคือทำให้คนเมืองเข้าใจที่มาของอาหาร (ด้านการเรียนรู้) ไม่ใช่ปริมาณผลผลิต · ผู้เขียนไม่ได้บอกว่าไม่มีคุณค่า",
+   "passage": "B2"
+  },
+  {
+   "id": "B2-09",
+   "level": "B2",
+   "skill": "functional",
+   "topic": "Disagreeing politely",
+   "q": "In a meeting, which is the most polite way to disagree?",
+   "choices": [
+    "You're wrong about that.",
+    "That's a stupid idea.",
+    "Whatever you say.",
+    "I see your point, but I'm not sure it would work in practice."
+   ],
+   "answer": 3,
+   "explain": "การแย้งอย่างสุภาพ: ยอมรับความเห็นอีกฝ่ายก่อน (I see your point) แล้วค่อยแย้งอย่างนุ่มนวล (but I'm not sure…) · ตัวเลือกอื่นห้วน หยาบ หรือประชด"
+  },
+  {
+   "id": "B2-10",
+   "level": "B2",
+   "skill": "functional",
+   "topic": "Asking for permission",
+   "q": "A: Would you mind if I opened the window?\nB: ___ It's quite stuffy in here.",
+   "choices": [
+    "Yes, please open it.",
+    "Yes, I would. Go ahead.",
+    "Not at all. Go ahead.",
+    "No, I mind."
+   ],
+   "answer": 2,
+   "explain": "Would you mind…? แปลว่า 'คุณจะรังเกียจไหม' ถ้าอนุญาตต้องตอบ Not at all (ไม่รังเกียจเลย) · ตอบ Yes = รังเกียจ จึงขัดกับ Go ahead และเหตุผลว่าห้องอบอ้าว"
+  },
+  {
+   "id": "C1-01",
+   "level": "C1",
+   "skill": "vocab",
+   "topic": "Collocations: academic",
+   "q": "The new policy has been met with ___ criticism from teachers and parents alike.",
+   "choices": [
+    "widespread",
+    "broad-minded",
+    "far-fetched",
+    "outspread"
+   ],
+   "answer": 0,
+   "explain": "widespread criticism = การวิจารณ์อย่างกว้างขวาง · broad-minded = ใจกว้าง (ใช้กับคน) · far-fetched = เหลือเชื่อ/ไม่น่าเป็นไปได้ · outspread = กางออก (ใช้กับปีก แขน)"
+  },
+  {
+   "id": "C1-02",
+   "level": "C1",
+   "skill": "vocab",
+   "topic": "Precise adjectives",
+   "q": "The minister's speech was deliberately ___, leaving journalists unsure of what she actually meant.",
+   "choices": [
+    "transparent",
+    "concise",
+    "ambiguous",
+    "explicit"
+   ],
+   "answer": 2,
+   "explain": "ทำให้นักข่าวไม่แน่ใจว่าหมายความว่าอย่างไร → ambiguous (คลุมเครือ ตีความได้หลายทาง) · transparent/explicit = ชัดเจน ตรงไปตรงมา · concise = กระชับ"
+  },
+  {
+   "id": "C1-03",
+   "level": "C1",
+   "skill": "vocab",
+   "topic": "Phrasal verbs: advanced",
+   "q": "After years of hard work, her efforts finally ___ when she won the scholarship.",
+   "choices": [
+    "paid off",
+    "paid back",
+    "paid out",
+    "paid up"
+   ],
+   "answer": 0,
+   "explain": "paid off (pay off) = (ความพยายาม) ประสบผลสำเร็จ คุ้มค่า · pay back = ใช้หนี้คืน · pay out = จ่ายเงินออก (เช่น ประกัน) · pay up = จ่ายหนี้ที่ค้างให้ครบ"
+  },
+  {
+   "id": "C1-04",
+   "level": "C1",
+   "skill": "grammar",
+   "topic": "Inversion: No sooner",
+   "q": "___ had I arrived home than it started to pour with rain.",
+   "choices": [
+    "Hardly",
+    "Not only",
+    "Only when",
+    "No sooner"
+   ],
+   "answer": 3,
+   "explain": "โครงสร้าง No sooner + had + S + V3 + than … = ทันทีที่… ก็… · Hardly ต้องคู่กับ when (Hardly had I … when …) ไม่ใช้ than · Not only ต้องคู่กับ but (also)"
+  },
+  {
+   "id": "C1-05",
+   "level": "C1",
+   "skill": "grammar",
+   "topic": "Mixed conditional",
+   "q": "If she had taken the job in Bangkok, she ___ in a big city now.",
+   "choices": [
+    "will live",
+    "would be living",
+    "would have lived",
+    "had lived"
+   ],
+   "answer": 1,
+   "explain": "เงื่อนไขผสม: เหตุในอดีต (had taken) ส่งผลถึงปัจจุบัน (now) → would be living (would + be + V-ing) · would have lived ใช้ผลในอดีต ไม่เข้ากับ now"
+  },
+  {
+   "id": "C1-06",
+   "level": "C1",
+   "skill": "grammar",
+   "topic": "Participle clauses",
+   "q": "___ the instructions carefully, she was able to assemble the furniture in an hour.",
+   "choices": [
+    "Having been read",
+    "To have read",
+    "Having read",
+    "Being read"
+   ],
+   "answer": 2,
+   "explain": "Having + V3 บอกการกระทำที่เกิดก่อนอีกการกระทำหนึ่ง และประธานคือ she เป็นผู้อ่านเอง (active) → Having read · Having been read/Being read เป็น passive (คู่มือถูกอ่าน) ผิดความหมาย"
+  },
+  {
+   "id": "C1-07",
+   "level": "C1",
+   "skill": "reading",
+   "topic": "Reading: implication",
+   "q": "What does the writer imply about people who always look for the \"best\" option?",
+   "choices": [
+    "They may feel less content with their decisions.",
+    "They usually make better decisions than others.",
+    "They are less anxious than other people.",
+    "They prefer having fewer choices."
+   ],
+   "answer": 0,
+   "explain": "'those who insist on finding the best option often end up less satisfied…' → คนที่ต้องได้ตัวเลือกที่ดีที่สุดมักพอใจน้อยกว่า (less content) · บทอ่านไม่ได้บอกว่าตัดสินใจดีกว่าหรือชอบตัวเลือกน้อยกว่า",
+   "passage": "C1"
+  },
+  {
+   "id": "C1-08",
+   "level": "C1",
+   "skill": "reading",
+   "topic": "Reading: meaning in context",
+   "q": "The phrase \"diminishing returns\" in the last sentence suggests that ___.",
+   "choices": [
+    "more options always make people unhappy",
+    "choice should be limited by law",
+    "people often return products they don't like",
+    "each extra option adds less benefit than the one before"
+   ],
+   "answer": 3,
+   "explain": "diminishing returns = ผลตอบแทนที่ลดลงเรื่อย ๆ คือเพิ่มตัวเลือกแล้วได้ประโยชน์เพิ่มน้อยลง ๆ · ผู้เขียนบอกชัดว่า choice ไม่ได้เป็นโทษในตัวเอง จึงไม่ใช่ 'always unhappy' · returns ในที่นี้ไม่ใช่การคืนสินค้า",
+   "passage": "C1"
+  },
+  {
+   "id": "C1-09",
+   "level": "C1",
+   "skill": "functional",
+   "topic": "Formal register",
+   "q": "Which sentence is most appropriate to open a formal complaint email?",
+   "choices": [
+    "Hey, your service was really bad last week.",
+    "I am writing to express my dissatisfaction with the service I received on 3 May.",
+    "Just a quick note to say I'm not happy!",
+    "I want my money back right now."
+   ],
+   "answer": 1,
+   "explain": "อีเมลร้องเรียนทางการควรเปิดด้วยภาษาทางการ บอกจุดประสงค์ชัดเจน (I am writing to express…) · ตัวเลือกอื่นเป็นภาษาไม่เป็นทางการหรือห้วนเกินไป"
+  },
+  {
+   "id": "C1-10",
+   "level": "C1",
+   "skill": "functional",
+   "topic": "Tactful feedback",
+   "q": "A colleague's presentation had many errors. Which comment is the most tactful?",
+   "choices": [
+    "Your presentation is full of mistakes.",
+    "Did you even check this?",
+    "There are a few points that might benefit from another look before the final version.",
+    "It's fine, nobody will notice the errors."
+   ],
+   "answer": 2,
+   "explain": "tactful = รักษาน้ำใจ ใช้ภาษาอ้อมและนุ่มนวล (a few points, might benefit from another look) แต่ยังชี้ให้แก้ · ตัวเลือก 2–3 ตรงและแรงเกินไป ตัวเลือก 4 ไม่ช่วยแก้ปัญหา"
+  },
+  {
+   "id": "C2-01",
+   "level": "C2",
+   "skill": "vocab",
+   "topic": "Idioms",
+   "q": "Despite the setbacks, the team refused to throw in the ___.",
+   "choices": [
+    "towel",
+    "sponge",
+    "hat",
+    "glove"
+   ],
+   "answer": 0,
+   "explain": "throw in the towel = ยอมแพ้ (สำนวนจากกีฬามวย) · 'refused to throw in the towel' = ไม่ยอมแพ้ · throw one's hat into the ring เป็นสำนวนอื่นหมายถึงลงสมัครแข่งขัน"
+  },
+  {
+   "id": "C2-02",
+   "level": "C2",
+   "skill": "vocab",
+   "topic": "Nuanced adjectives",
+   "q": "His apology seemed rather ___; he said the words but showed no real regret.",
+   "choices": [
+    "heartfelt",
+    "profuse",
+    "contrite",
+    "perfunctory"
+   ],
+   "answer": 3,
+   "explain": "perfunctory = ทำพอเป็นพิธี ไม่จริงใจ ตรงกับ 'พูดแต่ไม่สำนึกจริง' · heartfelt = จากใจ · profuse = มากมายล้นเหลือ · contrite = สำนึกผิดอย่างแท้จริง"
+  },
+  {
+   "id": "C2-03",
+   "level": "C2",
+   "skill": "vocab",
+   "topic": "Literary vocabulary",
+   "q": "The novel's ending is so ___ that readers are still debating what really happened to the narrator.",
+   "choices": [
+    "conclusive",
+    "enigmatic",
+    "pedestrian",
+    "trite"
+   ],
+   "answer": 1,
+   "explain": "ผู้อ่านยังถกเถียงว่าเกิดอะไรขึ้น → ตอนจบลึกลับ ชวนตีความ = enigmatic · conclusive = สรุปชัดเจน · pedestrian = จืดชืด ธรรมดา · trite = ซ้ำซาก จำเจ"
+  },
+  {
+   "id": "C2-04",
+   "level": "C2",
+   "skill": "grammar",
+   "topic": "Negative inversion",
+   "q": "Little ___ that the decision would cost him his career.",
+   "choices": [
+    "he realised",
+    "he did realise",
+    "realised he",
+    "did he realise"
+   ],
+   "answer": 3,
+   "explain": "เมื่อขึ้นต้นด้วยคำปฏิเสธอย่าง Little ต้องสลับเป็นรูปคำถาม (inversion): Little + did + S + V1 → Little did he realise = เขาแทบไม่รู้เลยว่า…"
+  },
+  {
+   "id": "C2-05",
+   "level": "C2",
+   "skill": "grammar",
+   "topic": "Conditional inversion",
+   "q": "Were the proposal ___, the company would need to hire fifty new staff.",
+   "choices": [
+    "approved it",
+    "to be approved",
+    "be approved",
+    "approving"
+   ],
+   "answer": 1,
+   "explain": "Were + S + to + V1 เป็นการละ If แบบทางการ (= If the proposal were to be approved) · ตัวลวงไม่ครบโครงสร้าง (approved it มีกรรมเกิน, be approved ขาด to, approving ผิดความหมาย)"
+  },
+  {
+   "id": "C2-06",
+   "level": "C2",
+   "skill": "grammar",
+   "topic": "Fronting with so … that",
+   "q": "So ___ was the storm that all flights were cancelled.",
+   "choices": [
+    "severely",
+    "severe",
+    "severity",
+    "more severe"
+   ],
+   "answer": 1,
+   "explain": "So + adjective + was + S + that … (สลับเพื่อเน้น) = The storm was so severe that… หลัง was ต้องใช้คุณศัพท์ → severe · severely เป็นกริยาวิเศษณ์ · severity เป็นคำนาม"
+  },
+  {
+   "id": "C2-07",
+   "level": "C2",
+   "skill": "reading",
+   "topic": "Reading: tone and attitude",
+   "q": "What is the writer's attitude towards the shopping complex?",
+   "choices": [
+    "sarcastic and critical",
+    "genuinely enthusiastic",
+    "neutral and factual",
+    "confused and uncertain"
+   ],
+   "answer": 0,
+   "explain": "ผู้เขียนใช้การประชด (sarcasm) เช่น 'One can only admire the efficiency…' และเน้นว่าตึกแถวไม้อายุร้อยปีถูกรื้อ จึงเป็นน้ำเสียงประชดและวิจารณ์ (sarcastic and critical) ไม่ได้ชื่นชมจริง",
+   "passage": "C2"
+  },
+  {
+   "id": "C2-08",
+   "level": "C2",
+   "skill": "reading",
+   "topic": "Reading: purpose of a detail",
+   "q": "Why does the writer mention the doorframe?",
+   "choices": [
+    "to praise the developers for protecting history",
+    "to explain where visitors should park",
+    "to highlight how little of the original buildings was actually kept",
+    "to suggest that the doorframe should be moved to a museum"
+   ],
+   "answer": 2,
+   "explain": "วงกบประตูชิ้นเดียวในลานจอดรถเป็นตัวอย่างประชดว่าประวัติศาสตร์ร้อยปีเหลือเพียง 'วัตถุชิ้นเดียวที่ถ่ายรูปง่าย' → เน้นว่าเก็บของเดิมไว้น้อยมาก 'To be fair' ใช้ประชด ไม่ได้ชมจริง",
+   "passage": "C2"
+  },
+  {
+   "id": "C2-09",
+   "level": "C2",
+   "skill": "functional",
+   "topic": "Firm, polite refusal",
+   "q": "Manager: Could you possibly take over the Henderson account as well this month?\nEmployee: ___",
+   "choices": [
+    "Sure, whatever.",
+    "No way, I'm far too busy.",
+    "Maybe, I'll think about it sometime.",
+    "I'd love to help, but taking it on now would compromise the quality of my current projects."
+   ],
+   "answer": 3,
+   "explain": "ปฏิเสธอย่างสุภาพแต่หนักแน่นในที่ทำงาน: แสดงความเต็มใจ (I'd love to help) + เหตุผลเชิงวิชาชีพ (กระทบคุณภาพงานที่ทำอยู่) · ตัวเลือกอื่นห้วน หยาบ หรือคลุมเครือ"
+  },
+  {
+   "id": "C2-10",
+   "level": "C2",
+   "skill": "functional",
+   "topic": "Understatement",
+   "q": "After the team lost 0–7, the coach said, \"Well, that wasn't quite our finest hour.\" What does the coach mean?",
+   "choices": [
+    "The team almost won.",
+    "The match lasted less than an hour.",
+    "The team performed very badly.",
+    "The team played their best ever."
+   ],
+   "answer": 2,
+   "explain": "การพูดน้อยกว่าความจริง (understatement): 'not quite our finest hour' (ไม่ใช่ช่วงเวลาที่ดีที่สุดของเรา) หมายถึงเล่นแย่มาก (แพ้ 0–7) · 'finest hour' เป็นสำนวน ไม่ได้หมายถึงเวลา 1 ชั่วโมงจริง"
+  }
+ ]
+};

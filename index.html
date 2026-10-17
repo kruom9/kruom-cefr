@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ครูออม · แบบทดสอบวัดระดับภาษาอังกฤษ CEFR – โรงเรียนปิยมิตรวิทยา</title>
+<meta name="description" content="แบบทดสอบวัดระดับภาษาอังกฤษตามกรอบ CEFR (A1–C2) 60 ข้อ 60 นาที รู้ผลทันที พร้อมวิเคราะห์จุดแข็งและเรื่องที่ควรพัฒนา · โรงเรียนปิยมิตรวิทยา อ.เชียงคำ จ.พะเยา">
+<meta name="theme-color" content="#0b1020"><link rel="icon" href="data:,">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ครูออม · โรงเรียนปิยมิตรวิทยา">
+<meta property="og:title" content="ครูออม · วัดระดับภาษาอังกฤษ CEFR A1–C2 — รู้ผลทันที">
+<meta property="og:description" content="แบบทดสอบวัดระดับภาษาอังกฤษตามกรอบ CEFR 60 ข้อ 60 นาที รู้ระดับทันที พร้อมจุดแข็งและเรื่องที่ควรพัฒนารายด้าน · โรงเรียนปิยมิตรวิทยา อ.เชียงคำ จ.พะเยา">
+<meta property="og:url" content="https://kruom9.github.io/kruom-cefr/">
+<meta property="og:image" content="https://kruom9.github.io/kruom-cefr/og-image.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:locale" content="th_TH">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://kruom9.github.io/kruom-cefr/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1020;--bg2:#121a33;--panel:#161e38;--panel2:#1c2648;--line:rgba(212,175,55,.28);--gold:#d4af37;--gold2:#f0d78c;--gold3:#a67c00;
+ --cream:#f7f1e3;--muted:#a8b0c8;--ok:#3dd68c;--bad:#ff6b7a;--warn:#ff9f43;--shadow:0 12px 40px rgba(0,0,0,.45);--radius:20px;
+ --font:Kanit,Sarabun,Tahoma,sans-serif;--font-body:Sarabun,Kanit,Tahoma,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:radial-gradient(1200px 600px at 10% -10%,#2a1f6e55,transparent),radial-gradient(900px 500px at 100% 0%,#7a4b1055,transparent),linear-gradient(180deg,var(--bg),var(--bg2));color:var(--cream);min-height:100vh}
+main{max-width:720px;margin:0 auto;padding:10px 10px 40px}
+.hero{display:flex;gap:12px;align-items:center;background:linear-gradient(120deg,#1a1440ee,#2a1a55ee 40%,#4a2c0aee);border:1px solid var(--line);border-radius:22px;padding:12px 14px;box-shadow:var(--shadow)}
+.logo{width:54px;height:54px;flex-shrink:0;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff8e7,#f0d78c 40%,#a67c00);color:#2a1200;font-weight:800;display:grid;place-items:center;font-size:12px;border:3px solid var(--gold2);box-shadow:0 0 0 4px #d4af3733;text-align:center;line-height:1.05}
+.ttl{flex:1;min-width:0}.ttl h1{margin:0;font-size:19px;background:linear-gradient(90deg,#fff,#f0d78c);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+.ttl .sub{font-size:12px;color:var(--muted);font-family:var(--font-body)}
+.slogan{margin:3px 0 0;font-size:12px;font-weight:600;color:var(--gold2)}
+.btn{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}
+.reset{background:#ffffff14;color:var(--cream);border:1px solid var(--line)}
+.go{background:linear-gradient(90deg,var(--gold3),var(--gold));color:#1a1200;font-size:16px;padding:12px 18px;box-shadow:0 4px 0 var(--gold3)}
+.go:disabled{filter:grayscale(1);opacity:.55;cursor:not-allowed}
+.panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-top:12px;box-shadow:var(--shadow)}
+.panel h2{margin:0 0 8px;font-size:18px;color:var(--gold2)}
+label{display:block;font-size:14px;margin-top:8px;font-family:var(--font-body)}
+input[type=text],input[type=tel],input:not([type]),select{width:100%;padding:11px;font:inherit;font-size:16px;margin-top:4px;border:1px solid var(--line);border-radius:10px;background:#0b1020;color:var(--cream)}
+.row2{display:flex;gap:10px}.row2>label{flex:1}
+.pdpa{background:#3a2a1066;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;font-family:var(--font-body);color:var(--muted);margin:12px 0;line-height:1.55}.pdpa b{color:var(--gold2)}
+.pdpa ul{margin:6px 0;padding-left:18px}.pdpa li{margin:3px 0}
+.steps{display:flex;gap:6px;margin:8px 0 2px;font-size:12px;font-family:var(--font-body)}.steps span{flex:1;text-align:center;padding:5px;border-radius:999px;background:#ffffff10;color:var(--muted);border:1px solid #ffffff18}.steps span.on{background:linear-gradient(90deg,var(--gold3),var(--gold));color:#1a1200;font-weight:600}
+.rules{font-family:var(--font-body);font-size:14px;color:var(--muted);line-height:1.6;margin:0}.rules b{color:var(--gold2)}
+.err{color:var(--bad);font-family:var(--font-body);font-size:14px}
+.hidden{display:none!important}
+.topbar{position:sticky;top:0;z-index:20;background:#0b1020f2;border-bottom:1px solid var(--line);padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;backdrop-filter:blur(6px)}
+.timer{font-weight:800;font-size:17px;color:var(--gold2);min-width:66px}.timer.low{color:var(--bad)}
+.pbar{flex:1;min-width:40px;height:10px;background:#ffffff18;border-radius:8px;overflow:hidden}.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold3),var(--gold2));transition:width .3s}
+.prog{font-size:12px;color:var(--muted);font-family:var(--font-body)}
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:8px;background:#3a2a55;color:#d4bfff;margin-right:4px}.tag.lv{background:#4a3a0a;color:var(--gold2)}
+.passage{font-family:var(--font-body);font-size:15px;line-height:1.6;background:#ffffff0a;border:1px dashed var(--line);border-radius:14px;padding:10px 12px;margin:10px 0;white-space:pre-wrap;color:#e8e3d4;max-height:42vh;overflow:auto}
+.passage b{color:var(--gold2);display:block;margin-bottom:4px}
+.qtext{font-size:18px;line-height:1.55;margin:12px 0;white-space:pre-wrap;font-family:var(--font-body);color:#fff}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:#ffffff0c;border:2px solid #ffffff18;color:var(--cream);font-size:16px;font-family:var(--font-body);padding:12px 14px;border-radius:14px;width:100%}
+.opt.sel{background:#3a2c08;border-color:var(--gold);color:#fff}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:14px}
+.grid{display:flex;flex-wrap:wrap;gap:5px}.grid b{width:100%;margin:8px 0 2px;font-size:13px;color:var(--gold2)}
+.cell{width:36px;height:32px;padding:0;font-size:12px;border-radius:8px;border:1px solid #ff6b7a66;background:#5a1a2255;color:#ffc2c8;font-family:var(--font)}
+.cell.done{background:#1b5e3a88;border-color:#3dd68c88;color:#c9ffe2}.cell.cur{outline:3px solid var(--gold)}
+.note{font-family:var(--font-body);font-size:12px;color:var(--muted);text-align:center;margin-top:16px}
+.muted{color:var(--muted);font-family:var(--font-body)}
+/* ===== Result card (สว่าง พิมพ์/แคปหน้าจอง่าย) ===== */
+.rcard{background:#fffdf7;color:#14204a;border-radius:18px;padding:16px;margin-top:12px;border:3px solid var(--gold);box-shadow:var(--shadow);font-family:var(--font-body)}
+.rhead{display:flex;gap:10px;align-items:center;border-bottom:2px solid #e6d39a;padding-bottom:10px}
+.rhead .logo{width:46px;height:46px;font-size:11px}
+.rhead h2{margin:0;font-family:var(--font);font-size:17px;color:#0d1b4c}.rhead .who{font-size:13px;color:#4a5376}
+.lvbox{display:flex;gap:14px;align-items:center;margin:14px 0 6px}
+.badge{display:inline-grid;place-items:center;min-width:44px;height:30px;padding:0 8px;border-radius:9px;font-family:var(--font);font-weight:800;font-size:15px;color:#fff;background:#6b7280}
+.badge.big{min-width:96px;height:96px;border-radius:22px;font-size:34px;box-shadow:0 6px 0 #0002;flex-direction:column;line-height:1}
+.badge.big small{font-size:11px;font-weight:600;margin-top:4px;opacity:.9}
+.L0{background:#8a8f9e}.L1{background:#2e9d5b}.L2{background:#1f8a8a}.L3{background:#2563c9}.L4{background:#5b3fc4}.L5{background:#a8327a}.L6{background:#b8860b}
+.lvtext b{font-family:var(--font);font-size:18px;color:#0d1b4c}.lvtext div{font-size:13px;color:#4a5376;line-height:1.5}
+.oneline{background:#0d1b4c;color:#f7e7b0;border-radius:12px;padding:10px 12px;font-weight:600;font-size:15px;margin:10px 0}
+.rsec{margin-top:14px}.rsec h3{margin:0 0 6px;font-family:var(--font);font-size:15px;color:#0d1b4c;border-left:5px solid var(--gold);padding-left:8px}
+.lvbars{display:grid;gap:5px}.lvb{display:grid;grid-template-columns:36px 1fr 54px;gap:8px;align-items:center;font-size:13px}
+.track{position:relative;height:16px;background:#ece7d6;border-radius:8px;overflow:hidden}.track i{display:block;height:100%;border-radius:8px}
+.track .th{position:absolute;top:-2px;bottom:-2px;width:2px;background:#c0392b}
+.chart{position:relative;padding:4px 0 0}
+.crow{display:grid;grid-template-columns:118px 1fr;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.ctrack{position:relative;height:22px;background:repeating-linear-gradient(90deg,#ece7d6 0,#ece7d6 calc(100%/6 - 1px),#d9d1b8 calc(100%/6 - 1px),#d9d1b8 calc(100%/6));border-radius:6px}
+.ctrack i{position:absolute;left:0;top:3px;bottom:3px;border-radius:5px}
+.ctrack .ov{position:absolute;top:-4px;bottom:-4px;border-left:3px dashed #0d1b4c}
+.cscale{display:grid;grid-template-columns:118px repeat(6,1fr);gap:0 0;font-size:11px;color:#4a5376;margin-left:0}.cscale span{text-align:right;padding-right:2px}
+.part{border:2px solid #e3dcc4;border-radius:14px;padding:10px 12px;margin:8px 0;background:#fff}
+.part.strong{border-color:#1f9d55;background:#ecfbf2}.part.weak{border-color:#f08c1a;background:#fff4e6}
+.part .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.part .pn{font-family:var(--font);font-weight:600;font-size:15px;flex:1;min-width:120px}
+.chip{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px}.chip.strong{background:#1f9d55;color:#fff}.chip.mid{background:#dfe5f2;color:#34406b}.chip.weak{background:#f08c1a;color:#fff}
+.part .ps{font-size:13px;color:#4a5376;margin-top:4px}.part .pa{font-size:13.5px;margin-top:4px;color:#14204a}
+.advice{background:#f6f0dc;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.6}
+.rule{font-size:12.5px;color:#4a5376;line-height:1.6}.rule summary{cursor:pointer;font-weight:600;color:#0d1b4c}
+.warnbox{background:#fff1e0;border:1px solid #f0a35a;border-radius:10px;padding:8px 10px;font-size:13px;color:#8a4b00;margin-top:8px}
+.rfoot{margin-top:12px;font-size:11.5px;color:#6b7393;text-align:center;border-top:1px solid #e6d39a;padding-top:8px}
+.rev{font-size:14px;border-bottom:1px solid #ffffff14;padding:10px 0;line-height:1.5;font-family:var(--font-body)}.ok{color:var(--ok)}.bad{color:var(--bad)}
+@media print{body{background:#fff!important}main{max-width:none;padding:0}.noprint,.hero,.topbar,.note{display:none!important}.rcard{box-shadow:none;margin:0;border-width:2px}.part,.lvb,.crow{break-inside:avoid}}
+</style></head><body>
+<main>
+<header class="hero noprint"><div class="logo">ครู<br>ออม</div><div class="ttl"><h1>ครูออม · วัดระดับภาษาอังกฤษ CEFR</h1>
+<div class="slogan">✦ รู้ระดับ รู้จุดแข็ง วางแผนเรียนต่อได้ตรงจุด ✦</div><div class="sub">โรงเรียนปิยมิตรวิทยา · 60 ข้อ · A1–C2 · รู้ผลทันที</div></div></header>
+
+<!-- REGISTER -->
+<section id="sReg" class="panel">
+<h2>ลงทะเบียนผู้เข้าสอบ</h2>
+<p class="rules">ข้อสอบปรนัย <b id="nq">60</b> ข้อ 4 ตัวเลือก เรียงจากง่ายไปยาก 6 ระดับ (A1 → C2 ระดับละ 10 ข้อ) วัด 4 ด้าน: คำศัพท์ ไวยากรณ์ การอ่าน และภาษาเพื่อการสื่อสาร · เวลา <b id="nmin">60</b> นาที<br>
+ปุ่มส่งคำตอบจะกดได้เมื่อตอบครบทุกข้อ ถ้าหมดเวลาระบบส่งให้อัตโนมัติ (ข้อที่ยังไม่ตอบนับว่าผิด) · ปิดหน้าเว็บกลางคันได้ กลับมาทำต่อในเครื่องเดิมได้<br>
+<b>รู้ผลทันทีเมื่อส่ง:</b> ระดับ CEFR คะแนนรายระดับ และจุดแข็ง/เรื่องที่ควรพัฒนารายด้าน · ทำตามความสามารถจริง ไม่ต้องเดา ข้อที่ไม่รู้ให้เลือกข้อที่คิดว่าใกล้เคียงที่สุด</p>
+<div class="steps"><span id="stp1" class="on">1 · ข้อมูลนักเรียน</span><span id="stp2">2 · ผู้ปกครองและความยินยอม</span></div>
+<div id="regA">
+<label>ชื่อ-นามสกุล นักเรียน *<input id="fname" autocomplete="name"></label>
+<label>ชื่อเล่น *<input id="fnick"></label>
+<div class="row2"><label>ชั้น *<select id="fgrade"><option value="">— เลือก —</option><option>ป.6</option><option>ม.1</option><option>ม.2</option><option>ม.3</option><option>ม.4</option><option>ม.5</option><option>ม.6</option></select></label>
+<label>ห้อง *<input id="froom" inputmode="numeric" placeholder="เช่น 2"></label></div>
+<label>โรงเรียน *<input id="fschool" value="ปิยมิตรวิทยา"></label>
+<label>เบอร์โทรนักเรียน (ไม่บังคับ)<input id="fphone" type="tel" inputmode="tel" placeholder="มือถือ 10 หลัก"></label>
+<button class="btn go" id="nextBtn" style="width:100%;margin-top:14px">ถัดไป: ข้อมูลผู้ปกครอง ▶</button>
+</div>
+<div id="regB" class="hidden">
+<label>ชื่อ-นามสกุล ผู้ปกครอง *<input id="fpname" autocomplete="off"></label>
+<label>ความเกี่ยวข้องกับนักเรียน *<select id="fprel"><option value="">— เลือก —</option><option>บิดา</option><option>มารดา</option><option>ปู่/ย่า/ตา/ยาย</option><option>พี่/ญาติ</option><option>ผู้ปกครองตามกฎหมาย/อื่น ๆ</option></select></label>
+<label>เบอร์โทรผู้ปกครอง (ไม่บังคับ)<input id="fpphone" type="tel" inputmode="tel" placeholder="มือถือ 10 หลัก"></label>
+<label>LINE ID ผู้ปกครอง (ไม่บังคับ)<input id="fline" autocomplete="off"></label>
+<div class="pdpa"><b>ความยินยอมของผู้ปกครอง (พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562)</b>
+<ul>
+<li><b>ข้อมูลที่เก็บ:</b> ชื่อ-นามสกุล ชื่อเล่น ชั้น/ห้อง โรงเรียน เบอร์นักเรียน (ถ้ากรอก) ชื่อผู้ปกครอง ความเกี่ยวข้อง เบอร์โทรและ LINE ID ผู้ปกครอง (ถ้ากรอก) คำตอบรายข้อ และผลวัดระดับ · <b>ไม่เก็บเลขบัตรประชาชน</b></li>
+<li><b>วัตถุประสงค์:</b> แจ้งผลระดับภาษาอังกฤษและคำแนะนำแก่นักเรียนและผู้ปกครอง จัดกลุ่มการเรียนให้เหมาะกับระดับ และวางแผนพัฒนาการสอนภาษาอังกฤษของโรงเรียนปิยมิตรวิทยาเท่านั้น ไม่ขายหรือเปิดเผยต่อบุคคลภายนอก</li>
+<li><b>ระยะเวลาเก็บ:</b> ไม่เกิน 1 ปีการศึกษา จากนั้นโรงเรียนจะลบข้อมูล</li>
+<li><b>สิทธิของผู้ปกครอง:</b> ขอดู แก้ไข ลบข้อมูล หรือถอนความยินยอมได้ทุกเมื่อ โดยติดต่อครูออม (ผู้บริหารฝ่ายมัธยม) โรงเรียนปิยมิตรวิทยา</li>
+<li id="pdpaLocal"><b>ในเครื่องนี้:</b> ข้อมูล คำตอบ และผลสอบบันทึกไว้ในเบราว์เซอร์ของเครื่องนี้ ลบได้ด้วยปุ่ม "เริ่มใหม่สำหรับผู้สอบคนถัดไป"</li>
+</ul>
+<label style="display:flex;gap:8px;align-items:flex-start;color:var(--cream)"><input type="checkbox" id="fconsent" style="width:22px;height:22px;margin-top:2px;flex-shrink:0"> <span>ข้าพเจ้าเป็นผู้ปกครองของนักเรียน หรือได้รับอนุญาตจากผู้ปกครองแล้ว และยินยอมให้เก็บและใช้ข้อมูลตามที่ระบุข้างต้น *</span></label></div>
+<div class="actions" style="margin-top:4px"><button class="btn reset" id="backBtn">◀ แก้ไขข้อมูลนักเรียน</button><button class="btn go" id="startBtn" style="flex:1">📝 เริ่มทำแบบทดสอบ</button></div>
+</div>
+<div id="regErr" class="err"></div>
+</section>
+
+<!-- EXAM -->
+<section id="sExam" class="hidden">
+<div class="topbar"><span class="timer" id="timer">60:00</span><div class="pbar"><i id="pbar"></i></div><span class="prog" id="prog"></span>
+<button class="btn reset" id="navBtn" style="padding:7px 10px;font-size:13px">☰ ข้อ</button><button class="btn go" id="submitBtn" style="padding:7px 12px;font-size:14px" disabled>ส่งคำตอบ</button></div>
+<div class="panel" id="navCard" style="display:none"><div class="grid" id="grid"></div><p class="muted" style="font-size:12px;margin:8px 0 0">เขียว = ตอบแล้ว · แดง = ยังไม่ตอบ · แตะเพื่อไปยังข้อนั้น</p></div>
+<div class="panel">
+<div class="qtop"><span id="qHead"></span><span id="qTags"></span></div>
+<div class="passage hidden" id="qPassage"></div>
+<div class="qtext" id="qText"></div><div class="opts" id="qOpts"></div>
+<div class="actions"><button class="btn reset" id="prevBtn">◀ ข้อก่อน</button><button class="btn reset" id="nextUn">ไปข้อที่ยังไม่ตอบ</button><button class="btn go" id="nextQ">ข้อถัดไป ▶</button></div>
+</div>
+<p class="note">ระบบบันทึกคำตอบในเครื่องนี้อัตโนมัติ · เวลายังเดินต่อแม้ปิดหน้าเว็บ</p>
+</section>
+
+<!-- RESULT -->
+<section id="sResult" class="hidden"><div id="resBox"></div></section>
+<p class="note">ครูออม · โรงเรียนปิยมิตรวิทยา อ.เชียงคำ จ.พะเยา · ข้อสอบเขียนขึ้นใหม่ทั้งหมดตามคำอธิบายระดับ CEFR (ไม่ใช่ข้อสอบมาตรฐานสากลที่ออกใบรับรอง)</p>
+</main>
+<script src="config.js"></script><script src="scoring.js"></script><script src="questions/cefr.js"></script>
+<script>
+const CFG=window.CEFR_CONFIG,BANK=window.QB.cefr,SC=window.CEFR_SCORING,TH="กขคง",LS="kruom_cefr_v1",LSH="kruom_cefr_results";
+const $=id=>document.getElementById(id);
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+let S=load();function load(){try{return JSON.parse(localStorage.getItem(LS))||{}}catch(e){return{}}}
+function persist(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function show(id){["sReg","sExam","sResult"].forEach(s=>$(s).classList.toggle("hidden",s!==id));window.scrollTo(0,0)}
+$("nq").textContent=BANK.questions.length;$("nmin").textContent=CFG.TIME_LIMIT_MIN;
+const LV_ADV={
+"Pre-A1":"เริ่มจากพื้นฐาน: ทบทวนตัวอักษร เสียง และคำศัพท์ใกล้ตัว (ครอบครัว สี ตัวเลข สิ่งของในห้องเรียน) วันละ 10 คำ ฝึกประโยค I am / This is / I like ฟังเพลงหรือการ์ตูนภาษาอังกฤษง่าย ๆ ทุกวัน",
+"A1":"ต่อยอดสู่ A2: ฝึก Past Simple (เล่าเมื่อวาน/วันหยุด) คำศัพท์เรื่องการซื้อของ อาหาร การเดินทาง อ่านข้อความสั้น เช่น ป้ายประกาศ ข้อความแชต และฝึกถาม-ตอบสั้น ๆ กับเพื่อน",
+"A2":"ต่อยอดสู่ B1: ฝึก Present Perfect, If แบบที่ 1, Passive อย่างง่าย อ่านเรื่องสั้นหรือข่าวสำหรับผู้เรียนวันละ 1 เรื่อง แล้วสรุปใจความ 2–3 ประโยค ฝึกแสดงความเห็นพร้อมเหตุผล (I think … because …)",
+"B1":"ต่อยอดสู่ B2: ฝึกแยกข้อเท็จจริงกับความเห็นในบทความ เรียนรู้ collocation และ phrasal verb ที่ใช้บ่อย ฝึก If แบบที่ 2–3, reported speech และฝึกพูด/เขียนโต้แย้งอย่างสุภาพ",
+"B2":"ต่อยอดสู่ C1: อ่านบทความวิชาการ/บทบรรณาธิการ จับนัยแฝงและน้ำเสียงผู้เขียน เพิ่มคำศัพท์ระดับวิชาการ ฝึกโครงสร้างขั้นสูง (inversion, mixed conditional) และเลือกระดับภาษาทางการให้เหมาะกับสถานการณ์",
+"C1":"ต่อยอดสู่ C2: อ่านวรรณกรรม บทวิจารณ์ และงานเขียนเชิงประชด สังเกตสำนวนและความหมายละเอียดอ่อน ฝึกเขียนเรียงความเชิงวิเคราะห์ และเตรียมสอบมาตรฐานสากลถ้าต้องการใบรับรอง",
+"C2":"ระดับเชี่ยวชาญ: รักษาระดับด้วยการอ่าน-ฟังสื่อจริงหลากหลาย ฝึกงานเขียนเชิงวิชาการ/สร้างสรรค์ และสามารถช่วยเป็นพี่เลี้ยงภาษาอังกฤษให้เพื่อน ๆ ได้ แนะนำให้สอบมาตรฐานสากลเพื่อรับรองระดับ"};
+const PART_ADV={
+vocab:{strong:"คลังคำศัพท์ดีมาก ต่อยอดด้วยการจดคำศัพท์เป็นกลุ่มคำ (collocation) และลองใช้คำใหม่ในการเขียน",mid:"ฝึกคำศัพท์วันละ 5–10 คำ พร้อมประโยคตัวอย่าง และทบทวนด้วยบัตรคำทุกสัปดาห์",weak:"เริ่มจากคำศัพท์ตามหัวข้อในชีวิตประจำวัน ทบทวนซ้ำแบบเว้นระยะ (วันนี้ พรุ่งนี้ อีก 3 วัน) และอ่านเรื่องง่าย ๆ เพื่อเจอคำซ้ำ"},
+grammar:{strong:"โครงสร้างประโยคแม่นยำ ต่อยอดด้วยโครงสร้างระดับสูงขึ้นและใช้ในงานเขียนจริง",mid:"ทบทวน tense และโครงสร้างที่ยังสับสน ทำแบบฝึกสั้น ๆ แล้วตรวจคำตอบพร้อมเหตุผล",weak:"ทบทวน tense พื้นฐาน (Present/Past/Future) ทีละเรื่อง สังเกตคำบอกเวลา (every day, yesterday, since) และฝึกแต่งประโยคของตัวเอง"},
+reading:{strong:"จับใจความและตีความได้ดี ต่อยอดด้วยบทความที่ยาวและยากขึ้น ฝึกหาน้ำเสียงและจุดประสงค์ของผู้เขียน",mid:"อ่านวันละ 1 เรื่องสั้น ฝึกถามตัวเองว่า ใคร ทำอะไร ที่ไหน ทำไม แล้วสรุปเป็นประโยคเดียว",weak:"เริ่มจากข้อความสั้นที่ระดับต่ำกว่าระดับรวม 1 ขั้น อ่านคำถามก่อนแล้วหาคำตอบในบทอ่าน ขีดเส้นใต้คำสำคัญ"},
+functional:{strong:"ใช้ภาษาได้เหมาะกับสถานการณ์ ต่อยอดด้วยการฝึกพูดจริง เช่น บทบาทสมมติ นำเสนอ หรือคุยกับชาวต่างชาติ",mid:"ฝึกประโยคที่ใช้บ่อยในสถานการณ์จริง (ขอร้อง ชวน ปฏิเสธ ขอโทษ) และสังเกตความสุภาพของแต่ละแบบ",weak:"ฝึกบทสนทนาสั้น ๆ คู่กับเพื่อน จำคู่ถาม-ตอบที่ใช้บ่อย และดูคลิปบทสนทนาแล้วพูดตาม"}};
+
+// ===== REGISTER =====
+const PH=/^0[689]\d{8}$/,clean=x=>x.replace(/[\s-]/g,""),v=id=>$(id).value.trim();
+document.querySelectorAll("#sReg input,#sReg select").forEach(i=>i.addEventListener("input",()=>$("regErr").textContent=""));
+function stepA(){const e=[];
+ if(!v("fname")||v("fname").split(/\s+/).length<2)e.push("กรอกชื่อและนามสกุลนักเรียน (เว้นวรรคระหว่างชื่อกับนามสกุล)");if(!v("fnick"))e.push("กรอกชื่อเล่น");
+ if(!v("fgrade"))e.push("เลือกชั้น");if(!/^\d{1,2}$/.test(v("froom")))e.push("กรอกห้องเป็นตัวเลข เช่น 2");if(!v("fschool"))e.push("กรอกโรงเรียน");
+ if(v("fphone")&&!PH.test(clean(v("fphone"))))e.push("เบอร์โทรนักเรียนไม่ถูกต้อง (มือถือ 10 หลัก ขึ้นต้น 06/08/09)");return e}
+function showErr(e){$("regErr").innerHTML=e.length?"• "+e.join("<br>• "):"";return !e.length}
+function regStep(n){$("regA").classList.toggle("hidden",n!==1);$("regB").classList.toggle("hidden",n!==2);$("stp1").classList.toggle("on",n===1);$("stp2").classList.toggle("on",n===2);$("regErr").textContent="";window.scrollTo(0,0)}
+$("nextBtn").onclick=()=>{if(showErr(stepA()))regStep(2)};$("backBtn").onclick=()=>regStep(1);
+$("startBtn").onclick=()=>{const e=stepA();if(e.length){regStep(1);showErr(e);return}
+ if(!v("fpname")||v("fpname").split(/\s+/).length<2)e.push("กรอกชื่อและนามสกุลผู้ปกครอง");if(!v("fprel"))e.push("เลือกความเกี่ยวข้องกับนักเรียน");
+ if(v("fpphone")&&!PH.test(clean(v("fpphone"))))e.push("เบอร์โทรผู้ปกครองไม่ถูกต้อง (มือถือ 10 หลัก ขึ้นต้น 06/08/09)");
+ if(/\d{13}/.test(clean(v("fline"))))e.push("ช่อง LINE ID ไม่ต้องกรอกเลขบัตรประชาชน");
+ if(!$("fconsent").checked)e.push("ผู้ปกครองต้องติ๊กยินยอมตาม PDPA ก่อนเริ่มสอบ");
+ if(!showErr(e))return;const now=Date.now();
+ S={id:"CEFR-"+now.toString(36).toUpperCase()+"-"+Math.random().toString(36).slice(2,6).toUpperCase(),
+  student:{name:v("fname"),nickname:v("fnick"),room:v("fgrade")+"/"+v("froom"),school:v("fschool"),phone:clean(v("fphone")),
+   parentName:v("fpname"),parentRelation:v("fprel"),parentPhone:clean(v("fpphone")),parentLine:v("fline"),consent:true,consentAt:new Date(now).toISOString(),consentVersion:"pdpa-cefr-v1-2569"},
+  version:BANK.version,order:buildOrder(),startedAt:now,endAt:now+CFG.TIME_LIMIT_MIN*60000,cur:0};
+ S.ans=new Array(S.order.length).fill(null);persist();startExam()};
+if(CFG.SAVE_URL)$("pdpaLocal").innerHTML+=" และจะส่งให้โรงเรียนผ่านระบบบันทึกผลออนไลน์";
+// ลำดับข้อ: เรียงตามระดับ A1→C2 · (ถ้าเปิด) สลับภายในระดับ โดยข้ออ่านจากบทเดียวกันอยู่ติดกัน · สลับตัวเลือก
+function buildOrder(){const out=[];BANK.levels.forEach(lv=>{const qs=BANK.questions.map((q,i)=>({q,i})).filter(x=>x.q.level===lv);
+ let groups=[];qs.forEach(x=>{const g=x.q.passage&&groups.find(g=>g[0].q.passage===x.q.passage);g?g.push(x):groups.push([x])});
+ if(CFG.SHUFFLE_WITHIN_LEVEL)groups=shuffle(groups);
+ groups.flat().forEach(x=>out.push({qi:x.i,perm:CFG.SHUFFLE_CHOICES?shuffle([0,1,2,3]):[0,1,2,3]}))});return out}
+const itemAt=k=>{const o=S.order[k],q=BANK.questions[o.qi];return{...q,choices:o.perm.map(i=>q.choices[i]),answer:o.perm.indexOf(q.answer)}};
+
+// ===== EXAM =====
+let tick=null,done=false;
+function startExam(){show("sExam");clearInterval(tick);tick=setInterval(timer,500);timer();renderQ(S.cur||0)}
+function timer(){const r=Math.max(0,S.endAt-Date.now()),m=Math.floor(r/60000),s=Math.floor(r%60000/1000);$("timer").textContent=`⏱ ${m}:${String(s).padStart(2,"0")}`;
+ $("timer").classList.toggle("low",r<5*60000);if(r<=0)submit(true)}
+function renderQ(k){S.cur=k;persist();const it=itemAt(k);
+ $("qHead").textContent=`ข้อ ${k+1} / ${S.order.length}`;$("qTags").innerHTML=`<span class="tag lv">ระดับ ${it.level}</span><span class="tag">${esc(BANK.skills[it.skill])}</span>`;
+ const p=it.passage&&BANK.passages[it.passage];$("qPassage").classList.toggle("hidden",!p);if(p)$("qPassage").innerHTML=`<b>📖 ${esc(p.title)}</b>${esc(p.text)}`;
+ $("qText").textContent=it.q;$("qOpts").innerHTML="";
+ it.choices.forEach((c,j)=>{const b=document.createElement("button");b.className="btn opt"+(S.ans[k]===j?" sel":"");b.textContent=TH[j]+". "+c;b.onclick=()=>{S.ans[k]=j;persist();renderQ(k)};$("qOpts").appendChild(b)});
+ status()}
+function status(){const n=S.ans.filter(a=>a!==null).length,N=S.order.length;$("prog").textContent=`ตอบแล้ว ${n}/${N}`;$("pbar").style.width=n/N*100+"%";$("submitBtn").disabled=n<N;
+ if($("navCard").style.display!=="none")grid()}
+function grid(){const g=$("grid");g.innerHTML="";let last="";S.order.forEach((o,k)=>{const lv=BANK.questions[o.qi].level;if(lv!==last){last=lv;const h=document.createElement("b");h.textContent="ระดับ "+lv+" · "+BANK.levelInfo[lv].name;g.appendChild(h)}
+ const c=document.createElement("button");c.className="cell"+(S.ans[k]!==null?" done":"")+(k===S.cur?" cur":"");c.textContent=k+1;c.onclick=()=>{renderQ(k);window.scrollTo(0,0)};g.appendChild(c)})}
+$("navBtn").onclick=()=>{const c=$("navCard");c.style.display=c.style.display==="none"?"block":"none";status()};
+$("prevBtn").onclick=()=>S.cur>0&&renderQ(S.cur-1);$("nextQ").onclick=()=>S.cur<S.order.length-1&&renderQ(S.cur+1);
+$("nextUn").onclick=()=>{const N=S.order.length;for(let d=1;d<=N;d++){const k=(S.cur+d)%N;if(S.ans[k]===null)return renderQ(k)}alert("ตอบครบทุกข้อแล้ว กดส่งคำตอบได้เลย")};
+$("submitBtn").onclick=()=>{if(confirm("ยืนยันส่งคำตอบ? ส่งแล้วแก้ไขไม่ได้"))submit(false)};
+window.addEventListener("beforeunload",e=>{if(S.student&&!S.result&&!done){e.preventDefault();e.returnValue=""}});
+
+// ===== SUBMIT & RESULT =====
+function submit(timeout){if(done||S.result)return;done=true;clearInterval(tick);
+ const items=S.order.map((_,k)=>itemAt(k)),r=SC.score(items,S.ans,CFG),now=Date.now();
+ const unanswered=S.ans.filter(a=>a===null).length,minutes=Math.round((Math.min(now,S.endAt)-S.startedAt)/6000)/10;
+ S.result={level:r.level,levelIdx:r.levelIdx,total:r.total,max:r.max,perLevel:r.perLevel,parts:r.parts,summary:r.summary,inconsistent:r.inconsistent,timeout,unanswered,minutes,submittedAt:new Date(now).toISOString()};
+ S.answers=items.map((it,k)=>({n:k+1,id:it.id,level:it.level,skill:it.skill,topic:it.topic,chosen:S.ans[k]===null?"":it.choices[S.ans[k]],correct:r.detail[k]}));
+ persist();
+ try{const h=JSON.parse(localStorage.getItem(LSH)||"[]");h.push({id:S.id,name:S.student.name,room:S.student.room,level:r.level,total:r.total,at:S.result.submittedAt});localStorage.setItem(LSH,JSON.stringify(h))}catch(e){}
+ renderResult();save()}
+function partLevelsPayload(R){const o={};SC.PARTS.forEach(p=>{const x=R.parts[p];o[p]={name:x.name,correct:x.c,total:x.n,percent:x.pct,level:x.level,status:x.status,statusTh:x.statusTh}});return o}
+function payload(){const R=S.result;return{type:"cefr",id:S.id,version:S.version,registration:S.student,
+ result:{level:R.level,total:R.total,max:R.max,perLevel:Object.fromEntries(SC.LEVELS.map(l=>[l,{correct:R.perLevel[l].c,total:R.perLevel[l].n,percent:R.perLevel[l].pct,pass:R.perLevel[l].pass}])),
+  parts:partLevelsPayload(R),summary:R.summary,inconsistent:R.inconsistent,timeout:R.timeout,unanswered:R.unanswered,minutes:R.minutes,threshold:CFG.LEVEL_THRESHOLD,partThreshold:CFG.PART_THRESHOLD},
+ answers:S.answers,submittedAt:R.submittedAt}}
+const L=i=>"L"+i;
+function renderResult(){const R=S.result,st=S.student,info=BANK.levelInfo[R.level],T=CFG.LEVEL_THRESHOLD;show("sResult");
+ const lvBars=SC.LEVELS.map((l,i)=>{const x=R.perLevel[l];return`<div class="lvb"><span class="badge ${L(i+1)}" style="min-width:34px;height:22px;font-size:12px">${l}</span><div class="track"><i class="${L(i+1)}" style="width:${x.pct}%"></i><span class="th" style="left:${T*100}%"></span></div><span>${x.c}/${x.n} ${x.pass?"✅":"·"}</span></div>`}).join("");
+ const chart=SC.PARTS.map(p=>{const x=R.parts[p];return`<div class="crow"><span>${x.status==="strong"?"⭐ ":x.status==="weak"?"🔸 ":""}${esc(x.name)}</span><div class="ctrack"><i class="${L(x.levelIdx)}" style="width:${Math.max(x.levelIdx,0.15)/6*100}%"></i><span class="ov" style="left:${R.levelIdx/6*100}%"></span></div></div>`}).join("");
+ const scale=`<div class="cscale"><span></span>${SC.LEVELS.map(l=>`<span>${l}</span>`).join("")}</div>`;
+ const parts=SC.PARTS.map(p=>{const x=R.parts[p];return`<div class="part ${x.status}" data-part="${p}"><div class="ph"><span class="pn">${x.status==="strong"?"⭐ ":""}${esc(x.name)}</span><span class="badge ${L(x.levelIdx)}">${x.level}</span><span class="chip ${x.status}">${x.statusTh}</span></div>
+  <div class="ps">ถูก <b>${x.c}/${x.n}</b> ข้อ (${x.pct}%)${x.why?" · "+x.why:""}</div><div class="pa">💡 ${esc(PART_ADV[p][x.status])}</div></div>`}).join("");
+ $("resBox").innerHTML=`<div class="rcard" id="resultCard">
+ <div class="rhead"><div class="logo">ครู<br>ออม</div><div style="flex:1;min-width:0"><h2>ผลวัดระดับภาษาอังกฤษ (CEFR)</h2><div class="who"><b>${esc(st.name)}</b> (น้อง${esc(st.nickname)}) · ${esc(st.room)} · โรงเรียน${esc(st.school.replace(/^โรงเรียน/,""))}<br>วันที่ ${new Date(R.submittedAt).toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"})} · ใช้เวลา ${R.minutes} นาที</div></div></div>
+ ${R.timeout?`<div class="warnbox">⏰ หมดเวลา ระบบส่งคำตอบให้อัตโนมัติ (ยังไม่ได้ตอบ ${R.unanswered} ข้อ นับว่าผิด)</div>`:""}
+ <div class="lvbox"><span class="badge big ${L(R.levelIdx)}" id="lvBadge">${R.level}<small>ระดับรวม</small></span><div class="lvtext"><b>${R.level==="Pre-A1"?"ก่อนระดับ A1 (Pre-A1)":esc(info.name)}</b><div>${R.level==="Pre-A1"?"ยังไม่ถึงเกณฑ์ระดับ A1 ควรเริ่มปูพื้นฐานคำศัพท์และประโยคง่าย ๆ":esc(info.can)}</div><div style="margin-top:4px">คะแนนรวม <b style="font-size:18px">${R.total}/${R.max}</b> ข้อ (${Math.round(R.total/R.max*100)}%)</div></div></div>
+ <div class="oneline" id="oneLine">📌 ${esc(R.summary)}</div>
+ <div class="rsec"><h3>ระดับรายด้าน (เส้นประ = ระดับรวม ${R.level})</h3><div class="chart">${chart}${scale}</div></div>
+ <div class="rsec"><h3>จุดแข็ง · พอใช้ · ควรพัฒนา รายด้าน</h3>${parts}</div>
+ <div class="rsec"><h3>คะแนนรายระดับ (เส้นแดง = เกณฑ์ผ่าน ${Math.round(T*10)}/10)</h3><div class="lvbars">${lvBars}</div>
+ ${R.inconsistent?`<div class="warnbox">⚠️ ผ่านเกณฑ์ระดับที่สูงกว่า แต่ไม่ผ่านระดับที่ต่ำกว่า ผลอาจมาจากการเดา ระบบจึงให้ระดับตามกติกา (ต้องผ่านทุกระดับที่ต่ำกว่า) ครูอาจพิจารณาสอบซ้ำหรือสัมภาษณ์เพิ่ม</div>`:""}</div>
+ <div class="rsec"><h3>ก้าวต่อไป</h3><div class="advice">${esc(LV_ADV[R.level])}</div></div>
+ <div class="rsec"><details class="rule" open><summary>กติกาการคิดผล (โปร่งใส ตรวจสอบได้)</summary>
+ 1) ข้อสอบ 60 ข้อ แบ่ง 6 ระดับ (A1 A2 B1 B2 C1 C2) ระดับละ 10 ข้อ ข้อละ 1 คะแนน ไม่หักคะแนนเมื่อตอบผิด<br>
+ 2) <b>ระดับรวม</b> = ระดับสูงสุดที่ได้อย่างน้อย ${Math.round(T*10)}/10 ข้อ (${Math.round(T*100)}%) <b>ทั้งที่ระดับนั้นและทุกระดับที่ต่ำกว่า</b> · ถ้าระดับ A1 ได้ไม่ถึงเกณฑ์ = Pre-A1<br>
+ 3) <b>ระดับรายด้าน</b> คิดแบบเดียวกันเฉพาะข้อของด้านนั้น (ระดับละ 2–3 ข้อ) ใช้เกณฑ์ถูกอย่างน้อย ${Math.round(CFG.PART_THRESHOLD*100)}% ของข้อในระดับนั้น (คำศัพท์/ไวยากรณ์ 2 ใน 3 ข้อ · การอ่าน/การสื่อสาร 2 ใน 2 ข้อ) ระดับรายด้านอิงข้อสอบจำนวนน้อย จึงใช้เป็นแนวทางเท่านั้น<br>
+ 4) <b>จุดแข็ง</b> = ระดับด้านสูงกว่าระดับรวมอย่างน้อย 1 ขั้น · <b>ควรพัฒนา</b> = ต่ำกว่าระดับรวมอย่างน้อย 1 ขั้น · ถ้าระดับเท่ากัน ดูร้อยละ: ด้านที่ร้อยละสูงสุด (และได้ ≥ ${Math.round(CFG.LEVEL_THRESHOLD*100)}%) = จุดแข็ง ต่ำสุด (และได้ต่ำกว่า ${Math.round(CFG.LEVEL_THRESHOLD*100)}%) = ควรพัฒนา เมื่อสูงสุดกับต่ำสุดห่างกันอย่างน้อย ${CFG.PART_GAP} จุด · นอกนั้น = พอใช้<br>
+ 5) ผลนี้เป็นการวัดระดับเบื้องต้นเพื่อจัดกลุ่มการเรียน ไม่ใช่ใบรับรองระดับ CEFR อย่างเป็นทางการ</details></div>
+ <div class="rfoot">ครูออม · โรงเรียนปิยมิตรวิทยา อ.เชียงคำ จ.พะเยา · รหัสผลสอบ ${esc(S.id)}</div></div>
+ <div class="panel noprint"><p id="saveStatus" class="muted" style="text-align:center;margin:0">กำลังบันทึกผล…</p>
+ <div class="actions"><button class="btn go" id="printBtn">🖨️ พิมพ์ / บันทึกเป็น PDF</button><button class="btn reset" id="newBtn">เริ่มใหม่สำหรับผู้สอบคนถัดไป</button></div>
+ <p class="muted" style="font-size:12px;text-align:center">แคปหน้าจอการ์ดผลด้านบนส่งให้ครูหรือผู้ปกครองได้เลย</p></div>
+ ${CFG.SHOW_EXPLANATIONS?`<div class="panel noprint"><h2>📘 เฉลยและคำอธิบาย</h2>${S.order.map((_,k)=>{const it=itemAt(k),a=S.ans[k];return`<div class="rev"><b>ข้อ ${k+1}</b> <span class="tag lv">${it.level}</span><span class="tag">${esc(it.topic)}</span><br>${esc(it.q).replace(/\n/g,"<br>")}<br>${a===it.answer?'<span class="ok">✔ ถูก</span>':`<span class="bad">✘ ${a===null?"ไม่ได้ตอบ":"ตอบ "+esc(it.choices[a])}</span>`} · เฉลย: <b>${esc(it.choices[it.answer])}</b><br><span class="muted">💡 ${esc(it.explain)}</span></div>`}).join("")}</div>`
+  :`<div class="panel noprint muted" style="font-size:13px">เฉลยข้อสอบไม่เปิดเผย เพื่อใช้แบบทดสอบชุดนี้กับผู้สอบคนต่อไป ครูจะแจ้งเรื่องที่ควรฝึกเพิ่มเติม</div>`}`;
+ $("printBtn").onclick=()=>window.print();
+ $("newBtn").onclick=()=>{if(confirm("ล้างข้อมูลผู้สอบคนนี้ออกจากเครื่อง แล้วเริ่มใหม่?")){localStorage.removeItem(LS);location.reload()}};
+ if(!CFG.SAVE_URL)$("saveStatus").textContent="✔ บันทึกผลไว้ในเครื่องนี้แล้ว (ยังไม่ได้ตั้งค่าส่งผลออนไลน์) · แคปหน้าจอส่งครูได้";
+ else if(S.sent)$("saveStatus").textContent="✔ ส่งผลให้ครูเรียบร้อยแล้ว"}
+function save(){if(!CFG.SAVE_URL)return;const st=$("saveStatus"),ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
+ fetch(CFG.SAVE_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload()),signal:ctl.signal})
+ .then(()=>{S.sent=true;persist();st.className="ok";st.style.textAlign="center";st.textContent="✔ ส่งผลให้ครูเรียบร้อยแล้ว"})
+ .catch(()=>{st.className="bad";st.innerHTML='ส่งผลไม่สำเร็จ (ผลด้านบนถูกต้องและเก็บสำรองในเครื่องแล้ว) <button class="btn reset" id="retry">ลองส่งอีกครั้ง</button>';$("retry").onclick=()=>{st.className="muted";st.textContent="กำลังบันทึกผล…";save()}})
+ .finally(()=>clearTimeout(to))}
+
+// ===== BOOT: ทำต่อจากที่ค้างไว้ / แสดงผลเดิม =====
+if(S.student&&S.result){renderResult();if(CFG.SAVE_URL&&!S.sent)save()}
+else if(S.student&&S.order&&S.version===BANK.version){startExam()}
+else if(S.student){localStorage.removeItem(LS);S={}}
+</script></body></html>
