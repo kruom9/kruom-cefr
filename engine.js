@@ -1,27 +1,28 @@
 // ===== เครื่องยนต์ข้อสอบปรับระดับ (adaptive) + กติกาคิดผล · ใช้ร่วมกันทั้งหน้าเว็บ และสคริปต์จำลอง/ทดสอบใน Node =====
-// ปรับระดับในแต่ละตอน: เริ่มที่ START_LEVEL (A2) · ตอบถูกติดกัน UP_AFTER (2) ข้อที่ระดับปัจจุบัน → ขึ้น 1 ระดับ
+// ฉบับปรับง่าย v3: ระดับข้อสอบ Pre-A1 / A1 / A2 (ตามขอบเขต ป.4–ป.6) · ไม่มีข้อ B1 ขึ้นไป
+// ปรับระดับในแต่ละตอน: เริ่มที่ START_LEVEL (A1) · ตอบถูกติดกัน UP_AFTER (2) ข้อที่ระดับปัจจุบัน → ขึ้น 1 ระดับ
 //   ตอบผิดติดกัน DOWN_AFTER (2) ข้อ → ลง 1 ระดับ · ไม่ใช้ข้อซ้ำ · ถ้าข้อในระดับปัจจุบันหมด ใช้ข้อจากระดับที่ใกล้ที่สุด (ระดับต่ำกว่าก่อน)
 //   ข้อสำรองแบบนี้: ตอบถูกข้อที่ง่ายกว่าไม่ทำให้ขึ้นระดับ และตอบผิดข้อที่ยากกว่าไม่ทำให้ลงระดับ
 // ระดับรายตอน: ระดับสูงสุดที่ตอบ ≥ 3 ข้อ (PART_MIN_ATTEMPTS) และถูก ≥ 60% (PART_PASS)
 //   ถ้าไม่มีระดับใดตอบถึง 3 ข้อเลย (ข้อมูลกระจาย เช่น หมดเวลา) ใช้ระดับสูงสุดที่ "ได้เลื่อนขึ้น" (ถูก 2 ข้อติดกันที่ระดับนั้น)
-//   ไม่ผ่านเกณฑ์เลย = Pre-A1 · ตอบน้อยกว่า MIN_ANSWERS_PART (8) ข้อ = ข้อมูลไม่พอ (ไม่นำไปคิดระดับรวม)
-// ระดับรวม: เฉลี่ยระดับของตอนที่ประเมินได้ (Pre-A1=0, A1=1 … C2=6) แล้วปัดเศษ (.5 ปัดลง)
+//   ไม่ผ่านเกณฑ์เลย (แม้ข้อ Pre-A1) = "ต่ำกว่า Pre-A1" · ตอบน้อยกว่า MIN_ANSWERS_PART (8) ข้อ = ข้อมูลไม่พอ (ไม่นำไปคิดระดับรวม)
+// ระดับรวม: เฉลี่ยระดับของตอนที่ประเมินได้ (ต่ำกว่า Pre-A1=0, Pre-A1=1, A1=2, A2=3) แล้วปัดเศษ (.5 ปัดลง)
 // จุดแข็ง/ควรพัฒนา: ระดับตอน ≥ ระดับรวม+1 = จุดแข็ง · ≤ ระดับรวม−1 = ควรพัฒนา
 //   ถ้าเท่ากับระดับรวม ดู "ระดับเฉลี่ยของข้อช่วงหลัง" (ข้อที่ 9 เป็นต้นไป): สูงสุด = จุดแข็ง ต่ำสุด = ควรพัฒนา เมื่อสูงสุด−ต่ำสุด ≥ PATH_GAP (0.75)
 (function(root){
-const LEVELS=["A1","A2","B1","B2","C1","C2"],NAMES=["Pre-A1"].concat(LEVELS),PARTS=["grammar","vocab","reading","listening"];
+const LEVELS=["Pre-A1","A1","A2"],NAMES=["ต่ำกว่า Pre-A1"].concat(LEVELS),TOP=LEVELS.length,PARTS=["grammar","vocab","reading","listening"];
 const PART_TH={grammar:"ไวยากรณ์",vocab:"คำศัพท์",reading:"การอ่าน",listening:"การฟัง"};
-const D={START_LEVEL:"A2",UP_AFTER:2,DOWN_AFTER:2,ITEMS_PER_PART:25,PART_PASS:0.6,PART_MIN_ATTEMPTS:3,MIN_ANSWERS_PART:8,PATH_GAP:0.75};
+const D={START_LEVEL:"A1",UP_AFTER:2,DOWN_AFTER:2,ITEMS_PER_PART:25,PART_PASS:0.6,PART_MIN_ATTEMPTS:3,MIN_ANSWERS_PART:8,PATH_GAP:0.75};
 const cfgOf=c=>Object.assign({},D,c||{});
 function newPart(cfg){cfg=cfgOf(cfg);return{lv:LEVELS.indexOf(cfg.START_LEVEL)+1,sc:0,sw:0,used:[],resp:[],promoted:[],done:false}}
 // เลือกข้อถัดไป: pool = รายการข้อของตอนนั้น [{id,level}] · rnd = ฟังก์ชันสุ่ม 0..1
 function pick(st,pool,rnd){rnd=rnd||Math.random;const used=new Set(st.used);
  const at=l=>pool.filter(it=>it.level===LEVELS[l-1]&&!used.has(it.id));
- for(let d=0;d<6;d++){for(const l of d===0?[st.lv]:[st.lv-d,st.lv+d]){if(l<1||l>6)continue;const c=at(l);if(c.length)return c[Math.floor(rnd()*c.length)]}}
+ for(let d=0;d<TOP;d++){for(const l of d===0?[st.lv]:[st.lv-d,st.lv+d]){if(l<1||l>TOP)continue;const c=at(l);if(c.length)return c[Math.floor(rnd()*c.length)]}}
  return null}
 function record(st,item,ok,cfg){cfg=cfgOf(cfg);st.used.push(item.id);st.resp.push({id:item.id,level:item.level,at:LEVELS[st.lv-1],ok:!!ok});
  const il=LEVELS.indexOf(item.level)+1; // ข้อสำรองจากระดับอื่น (เมื่อข้อระดับปัจจุบันหมด): ถูกที่ระดับต่ำกว่าไม่นับขึ้น · ผิดที่ระดับสูงกว่าไม่นับลง
- if(ok){if(il<st.lv)return fin(st,cfg);st.sc++;st.sw=0;if(st.sc>=cfg.UP_AFTER){if(st.lv<6){st.promoted.push(st.lv);st.lv++}st.sc=0}}
+ if(ok){if(il<st.lv)return fin(st,cfg);st.sc++;st.sw=0;if(st.sc>=cfg.UP_AFTER){if(st.lv<TOP){st.promoted.push(st.lv);st.lv++}st.sc=0}}
  else{if(il>st.lv)return fin(st,cfg);st.sw++;st.sc=0;if(st.sw>=cfg.DOWN_AFTER){if(st.lv>1)st.lv--;st.sw=0}}
  return fin(st,cfg)}
 function fin(st,cfg){if(st.resp.length>=cfg.ITEMS_PER_PART)st.done=true;return st}

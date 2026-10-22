@@ -75,7 +75,7 @@ input[type=text],input[type=tel],input:not([type]),select{width:100%;padding:12p
 .lvbox{display:flex;gap:14px;align-items:center;margin:14px 0 6px}
 .badge{display:inline-grid;place-items:center;min-width:48px;height:32px;padding:0 8px;border-radius:9px;font-family:var(--font);font-weight:800;font-size:15px;color:#fff;background:#6b7280}
 .badge.big{min-width:100px;height:100px;border-radius:22px;font-size:34px;box-shadow:0 6px 0 #0002;flex-direction:column;line-height:1}.badge.big small{font-size:11px;font-weight:600;margin-top:4px}
-.badge.grey{background:#9aa0ad;font-size:12px}
+.badge.grey{background:#9aa0ad;font-size:12px}.badge.big.long{font-size:16px;text-align:center;padding:0 6px}
 .L0{background:#8a8f9e}.L1{background:#2e9d5b}.L2{background:#1f8a8a}.L3{background:#2563c9}.L4{background:#5b3fc4}.L5{background:#a8327a}.L6{background:#b8860b}
 .lvtext b{font-family:var(--font);font-size:18px;color:#0d1b4c}.lvtext div{font-size:13px;color:#4a5376;line-height:1.5}
 .oneline{background:#0d1b4c;color:#f7e7b0;border-radius:12px;padding:10px 12px;font-weight:600;font-size:15px;margin:10px 0}
@@ -94,37 +94,27 @@ input[type=text],input[type=tel],input:not([type]),select{width:100%;padding:12p
 </style></head><body>
 <main>
 <header class="hero noprint"><div class="logo">ครู<br>ออม</div><div class="ttl"><h1>ครูออม · ผจญภัยวัดระดับภาษาอังกฤษ</h1>
-<div class="slogan">✦ ป.6 เตรียมพร้อมขึ้น ม.1 กับครูออม ✦</div><div class="sub">โรงเรียนปิยมิตรวิทยา · CEFR A1–C2 · 4 ตอน 100 ข้อ</div></div></header>
+<div class="slogan">✦ ป.6 เตรียมพร้อมขึ้น ม.1 กับครูออม ✦</div><div class="sub">โรงเรียนปิยมิตรวิทยา · CEFR Pre-A1–A2 (ระดับ ป.4–ป.6) · 4 ตอน 100 ข้อ</div></div></header>
 
 <section id="sReg" class="screen panel">
 <h2>ลงทะเบียนนักผจญภัย 🧭</h2>
 <p class="rules">ข้อสอบมี <b>4 ตอน</b>: ไวยากรณ์ → คำศัพท์ → การอ่าน → การฟัง ตอนละ <b id="nper">25</b> ข้อ เวลารวม <b id="nmin">90</b> นาที<br>
 ข้อสอบจะ <b>ปรับยากง่ายตามที่หนูตอบ</b> ตอบถูกจะยากขึ้น ตอบผิดจะง่ายลง ไม่ต้องกังวลถ้าเจอข้อยาก ทำให้เต็มที่ก็พอ 💪<br>
 รู้ผลทันทีเมื่อทำจบ · การฟังต้องใช้ลำโพงหรือหูฟัง</p>
-<div class="steps"><span id="stp1" class="on">1 · ข้อมูลนักเรียน</span><span id="stp2">2 · ผู้ปกครองและความยินยอม</span></div>
 <div id="regA">
-<label>ชื่อ-นามสกุล นักเรียน *<input id="fname" autocomplete="name"></label>
-<label>ชื่อเล่น *<input id="fnick"></label>
-<label>โรงเรียนที่เรียน ป.6 อยู่ตอนนี้ *<input id="fschool" placeholder="เช่น โรงเรียนบ้าน…"></label>
-<label>ห้อง ป.6/ * (ใส่เลขห้อง ถ้ามีห้องเดียวใส่ 1)<input id="froom" inputmode="numeric" placeholder="เช่น 1"></label>
-<label>เบอร์โทรนักเรียน (ไม่บังคับ)<input id="fphone" type="tel" inputmode="tel" placeholder="มือถือ 10 หลัก"></label>
-<button class="btn go" id="nextBtn" style="width:100%;margin-top:14px">ถัดไป: ข้อมูลผู้ปกครอง ▶</button>
-</div>
-<div id="regB" class="hidden">
-<label>ชื่อ-นามสกุล ผู้ปกครอง *<input id="fpname" autocomplete="off"></label>
-<label>ความเกี่ยวข้องกับนักเรียน *<select id="fprel"><option value="">— เลือก —</option><option>บิดา</option><option>มารดา</option><option>ปู่/ย่า/ตา/ยาย</option><option>พี่/ญาติ</option><option>ผู้ปกครองตามกฎหมาย/อื่น ๆ</option></select></label>
-<label>เบอร์โทรผู้ปกครอง (ไม่บังคับ)<input id="fpphone" type="tel" inputmode="tel" placeholder="มือถือ 10 หลัก"></label>
-<label>LINE ID ผู้ปกครอง (ไม่บังคับ)<input id="fline" autocomplete="off"></label>
-<div class="pdpa"><b>ความยินยอมของผู้ปกครอง (พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562)</b>
+<label>ชื่อนักเรียน *<input id="fname" autocomplete="name" maxlength="80" placeholder="ชื่อ-นามสกุล"></label>
+<label>ชื่อโรงเรียน *<select id="fschool"><option value="">— เลือกโรงเรียน —</option></select></label>
+<label id="fschoolOtherWrap" class="hidden">พิมพ์ชื่อโรงเรียน *<input id="fschoolOther" maxlength="100" placeholder="เช่น โรงเรียนบ้าน…"></label>
+<label>ชั้น *<select id="froom"><option value="">— เลือกชั้น —</option></select></label>
+<label>LINE ID สำหรับติดต่อ (ของผู้ปกครองหรือนักเรียน) *<input id="fline" autocomplete="off" maxlength="60" placeholder="เช่น kruom9"></label>
+<div class="pdpa"><b>การเก็บข้อมูล (พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562)</b>
 <ul>
-<li><b>ข้อมูลที่เก็บ:</b> ชื่อ-นามสกุล ชื่อเล่น โรงเรียนและห้อง ป.6 เบอร์นักเรียน (ถ้ากรอก) ชื่อผู้ปกครอง ความเกี่ยวข้อง เบอร์โทรและ LINE ID ผู้ปกครอง (ถ้ากรอก) คำตอบและผลวัดระดับ · <b>ไม่เก็บเลขบัตรประชาชน</b></li>
-<li><b>วัตถุประสงค์:</b> แจ้งผลระดับภาษาอังกฤษและคำแนะนำในการเตรียมตัวขึ้น ม.1 แก่นักเรียนและผู้ปกครอง และใช้วางแผนจัดการเรียนภาษาอังกฤษของโรงเรียนปิยมิตรวิทยาเท่านั้น ไม่ขายหรือเปิดเผยต่อบุคคลภายนอก</li>
-<li><b>ระยะเวลาเก็บ:</b> ไม่เกิน 1 ปีการศึกษา จากนั้นโรงเรียนจะลบข้อมูล</li>
-<li><b>สิทธิของผู้ปกครอง:</b> ขอดู แก้ไข ลบข้อมูล หรือถอนความยินยอมได้ทุกเมื่อ โดยติดต่อครูออม (ผู้บริหารฝ่ายมัธยม) โรงเรียนปิยมิตรวิทยา</li>
+<li><b>ข้อมูลที่เก็บ:</b> ชื่อนักเรียน โรงเรียน ชั้น LINE ID คำตอบและผลวัดระดับ · <b>ไม่เก็บเลขบัตรประชาชน</b></li>
+<li><b>วัตถุประสงค์:</b> แจ้งผลระดับภาษาอังกฤษและคำแนะนำการเตรียมตัวขึ้น ม.1 และใช้วางแผนการสอนของโรงเรียนปิยมิตรวิทยาเท่านั้น ไม่ขายหรือเปิดเผยต่อบุคคลภายนอก · เก็บไม่เกิน 1 ปีการศึกษา</li>
+<li><b>สิทธิ:</b> ขอดู แก้ไข หรือลบข้อมูลได้ทุกเมื่อ โดยติดต่อครูออม โรงเรียนปิยมิตรวิทยา · ควรทำแบบทดสอบโดยผู้ปกครองรับทราบ</li>
 <li id="pdpaLocal"><b>ในเครื่องนี้:</b> ข้อมูลและผลสอบบันทึกไว้ในเบราว์เซอร์ของเครื่องนี้ ลบได้ด้วยปุ่ม "เริ่มใหม่สำหรับผู้สอบคนถัดไป"</li>
-</ul>
-<label style="display:flex;gap:10px;align-items:flex-start;color:var(--cream)"><input type="checkbox" id="fconsent" style="width:26px;height:26px;margin-top:2px;flex-shrink:0"> <span>ข้าพเจ้าเป็นผู้ปกครองของนักเรียน หรือได้รับอนุญาตจากผู้ปกครองแล้ว และยินยอมให้เก็บและใช้ข้อมูลตามที่ระบุข้างต้น *</span></label></div>
-<div class="actions" style="margin-top:4px"><button class="btn reset" id="backBtn">◀ แก้ไข</button><button class="btn go" id="regBtn" style="flex:1">ลงทะเบียน ▶</button></div>
+</ul></div>
+<button class="btn go" id="regBtn" style="width:100%;margin-top:8px">รับทราบและเริ่มผจญภัย ▶</button>
 </div>
 <div id="regErr" class="err"></div>
 </section>
@@ -164,14 +154,14 @@ input[type=text],input[type=tel],input:not([type]),select{width:100%;padding:12p
 <section id="sResult" class="screen hidden"><div id="resBox"></div></section>
 <p class="note">ครูออม · โรงเรียนปิยมิตรวิทยา อ.เชียงคำ จ.พะเยา · ข้อสอบเขียนขึ้นใหม่ตามคำอธิบายระดับ CEFR เพื่อวัดระดับเบื้องต้น (ไม่ใช่ใบรับรองอย่างเป็นทางการ)</p>
 </main>
-<script src="config.js"></script><script src="engine.js"></script><script src="questions/cefr-p6.js"></script>
+<script src="config.js"></script><script src="engine.js"></script><script src="questions/cefr-p6.js"></script><script src="schools.js"></script>
 <script>
-// ===== ครูออม · CEFR ป.6 v2 (ปรับระดับอัตโนมัติ 4 ตอน) =====
-const CFG=Object.assign({SAVE_URL:"",TIME_LIMIT_MIN:90,ITEMS_PER_PART:25,LISTEN_MAX_PLAYS:2,LISTEN_RATE_SLOW:0.8,LISTEN_RATE:0.95,SHOW_ANSWERS_AFTER:false},window.CEFR_CONFIG||{});
+// ===== ครูออม · CEFR ป.6 v3 ฉบับปรับง่าย (Pre-A1–A2 · ปรับระดับอัตโนมัติ 4 ตอน) =====
+const CFG=Object.assign({SAVE_URL:"",TIME_LIMIT_MIN:90,ITEMS_PER_PART:25,LISTEN_MAX_PLAYS:2,LISTEN_RATE_SLOW:0.75,LISTEN_RATE:0.8,SHOW_ANSWERS_AFTER:false},window.CEFR_CONFIG||{});
 const E=window.CEFR_ENGINE,QB=window.QB.p6,LEVELS=E.LEVELS,NAMES=E.NAMES,PARTS=E.PARTS;
 const PART_EN={grammar:"Grammar",vocab:"Vocabulary",reading:"Reading",listening:"Listening"};
 const PART_ICON={grammar:"🧩",vocab:"🔤",reading:"📖",listening:"🎧"};
-const KEY="kruom-cefr-p6-v2";const $=id=>document.getElementById(id);
+const KEY="kruom-cefr-p6-v3";const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const POOL={};PARTS.forEach(p=>POOL[p]=QB.items.filter(i=>i.part===p));const BYID={};QB.items.forEach(i=>BYID[i.id]=i);
 $("nper").textContent=CFG.ITEMS_PER_PART;$("nmin").textContent=CFG.TIME_LIMIT_MIN;
@@ -236,7 +226,7 @@ const HOW={
 grammar:"<b>ทำอย่างไร:</b> อ่านประโยค แล้วเลือกคำที่เติมในช่องว่าง ______ ได้ถูกต้องที่สุด<br>แตะคำตอบ แล้วกด <b>ส่งคำตอบข้อนี้</b><br>💡 ข้อสอบจะยากขึ้นเมื่อหนูตอบถูก ถ้าเจอข้อยาก แปลว่าหนูเก่งขึ้นแล้ว!",
 vocab:"<b>ทำอย่างไร:</b> เลือกคำที่มีความหมายเหมาะกับประโยค หรือคำที่ถามถึง<br>แตะคำตอบ แล้วกด <b>ส่งคำตอบข้อนี้</b><br>💡 ไม่แน่ใจ ให้ลองเดาจากเรื่องในประโยค",
 reading:"<b>ทำอย่างไร:</b> อ่านเรื่องสั้นในกรอบ แล้วตอบคำถาม<br>บางเรื่องมีหลายคำถาม อ่านย้อนดูได้เสมอ<br>💡 อ่านคำถามก่อน แล้วค่อยหาคำตอบในเรื่อง",
-listening:"<b>ทำอย่างไร:</b> กดปุ่ม 🔊 เพื่อฟังภาษาอังกฤษ แล้วเลือกคำตอบ<br>ฟังได้ <b>ไม่เกิน LISTEN_N ครั้ง</b> ต่อข้อ (ข้อง่ายจะพูดช้าลง)<br>💡 ใส่หูฟังหรือเปิดลำโพง และอยู่ในที่เงียบ ๆ".replace("LISTEN_N",CFG.LISTEN_MAX_PLAYS)};
+listening:"<b>ทำอย่างไร:</b> กดปุ่ม 🔊 เพื่อฟังภาษาอังกฤษ แล้วเลือกคำตอบ<br>ฟังได้ <b>ไม่เกิน LISTEN_N ครั้ง</b> ต่อข้อ (พูดช้า ๆ ทุกข้อ)<br>💡 ใส่หูฟังหรือเปิดลำโพง และอยู่ในที่เงียบ ๆ".replace("LISTEN_N",CFG.LISTEN_MAX_PLAYS)};
 const SAY_IN={grammar:"ด่านแรก! มาดูว่าหนูเรียงประโยคเก่งแค่ไหน ครูออมเชียร์อยู่นะ 😊",vocab:"ด่านคำศัพท์ คลังคำในหัวหนูมีเยอะแค่ไหน มาลุยกัน!",reading:"ด่านนักอ่าน อ่านช้า ๆ ไม่ต้องรีบ หนูทำได้แน่นอน 📖",listening:"ด่านสุดท้าย! ตั้งใจฟังให้ดีนะ เกือบถึงเส้นชัยแล้ว 🎧"};
 const CHEERS=["เก่งมาก ทำต่อไปเลย!","ครูออมเป็นกำลังใจให้นะ 💪","ใจเย็น ๆ อ่านให้ครบก่อนตอบ","ทำได้ดีมาก ไปต่อ!","เยี่ยมเลย อีกนิดเดียว!","ข้อยากไม่ต้องกลัว ตั้งใจทำก็พอ"];
 // ===== state =====
@@ -249,22 +239,23 @@ function show(id){SCREENS.forEach(s=>$(s).classList.toggle("hidden",s!==id));if(
 // ===== registration =====
 const strip13=s=>String(s||"").replace(/\d(?:[\s-]?\d){12}/g,"").trim();
 const has13=s=>/\d(?:[\s-]?\d){12}/.test(String(s||""));
-const phoneOk=s=>!s||/^0\d{8,9}$/.test(s.replace(/[\s-]/g,""));
 function regErr(m){$("regErr").textContent=m}
-$("nextBtn").onclick=()=>{const v={name:$("fname").value.trim(),nick:$("fnick").value.trim(),school:$("fschool").value.trim(),room:$("froom").value.trim(),phone:$("fphone").value.trim()};
+const OTHER="__other__";
+(function fillReg(){const sel=$("fschool");(window.SCHOOLS||[]).forEach(g=>{const og=document.createElement("optgroup");og.label=g.label;
+  g.schools.forEach(x=>{const o=document.createElement("option");o.value=x.name;o.textContent=x.name;o.dataset.code=x.code||"";og.appendChild(o)});sel.appendChild(og)});
+ const o=document.createElement("option");o.value=OTHER;o.textContent="อื่น ๆ (พิมพ์ชื่อ)";sel.appendChild(o);
+ sel.onchange=()=>{$("fschoolOtherWrap").classList.toggle("hidden",sel.value!==OTHER);if(sel.value===OTHER)$("fschoolOther").focus()};
+ const rm=$("froom");["ป.6 (ห้องเดียว)"].concat([1,2,3,4,5,6,7,8,9,10].map(n=>"ป.6/"+n)).forEach(t=>{const o=document.createElement("option");o.value=t;o.textContent=t;rm.appendChild(o)})})();
+$("regBtn").onclick=()=>{const sel=$("fschool"),other=sel.value===OTHER;
+ const v={name:$("fname").value.trim(),school:other?$("fschoolOther").value.trim():sel.value,room:$("froom").value,line:$("fline").value.trim()};
  if(Object.values(v).some(has13))return regErr("ห้ามกรอกเลขบัตรประชาชน (เลข 13 หลัก) ในแบบฟอร์มนี้");
- if(!v.name||!v.nick||!v.school||!v.room)return regErr("กรุณากรอกช่องที่มี * ให้ครบ");
- if(!/^\d{1,2}$/.test(v.room))return regErr("ห้อง ป.6 ใส่เป็นตัวเลข เช่น 1");
- if(!phoneOk(v.phone))return regErr("เบอร์โทรนักเรียนไม่ถูกต้อง (มือถือ 10 หลัก ขึ้นต้นด้วย 0)");
- regErr("");$("regA").classList.add("hidden");$("regB").classList.remove("hidden");$("stp1").classList.remove("on");$("stp2").classList.add("on")};
-$("backBtn").onclick=()=>{$("regB").classList.add("hidden");$("regA").classList.remove("hidden");$("stp2").classList.remove("on");$("stp1").classList.add("on");regErr("")};
-$("regBtn").onclick=()=>{const v={pname:$("fpname").value.trim(),prel:$("fprel").value,pphone:$("fpphone").value.trim(),line:$("fline").value.trim()};
- if(Object.values(v).some(has13))return regErr("ห้ามกรอกเลขบัตรประชาชน (เลข 13 หลัก) ในแบบฟอร์มนี้");
- if(!v.pname||!v.prel)return regErr("กรุณากรอกชื่อผู้ปกครองและความเกี่ยวข้อง");
- if(!phoneOk(v.pphone))return regErr("เบอร์โทรผู้ปกครองไม่ถูกต้อง (มือถือ 10 หลัก ขึ้นต้นด้วย 0)");
- if(!$("fconsent").checked)return regErr("ต้องได้รับความยินยอมจากผู้ปกครองก่อนเริ่มทำแบบทดสอบ");
- S.student={name:strip13($("fname").value),nick:strip13($("fnick").value),school:strip13($("fschool").value),room:"ป.6/"+$("froom").value.trim(),phone:strip13($("fphone").value),
-  parentName:strip13(v.pname),parentRelation:v.prel,parentPhone:strip13(v.pphone),parentLine:strip13(v.line),consent:true,consentAt:new Date().toISOString()};
+ if(!v.name)return regErr("กรุณากรอกชื่อนักเรียน");
+ if(!sel.value)return regErr("กรุณาเลือกโรงเรียน (ถ้าไม่มีในรายการ เลือก อื่น ๆ แล้วพิมพ์ชื่อ)");
+ if(!v.school)return regErr("กรุณาพิมพ์ชื่อโรงเรียน");
+ if(!v.room)return regErr("กรุณาเลือกชั้น");
+ if(!v.line)return regErr("กรุณากรอก LINE ID สำหรับติดต่อ");
+ const code=other?"":(sel.selectedOptions[0]&&sel.selectedOptions[0].dataset.code)||"";
+ S.student={name:strip13(v.name),school:strip13(v.school),schoolCode:code,schoolOther:other,room:v.room,line:strip13(v.line),notice:true,noticeAt:new Date().toISOString()};
  regErr("");save();renderMap()};
 // ===== timer =====
 let tick=null;
@@ -278,7 +269,7 @@ function startTick(){if(!tick)tick=setInterval(paintTimer,500);paintTimer()}
 // ===== map =====
 const POS=[[22,16],[74,38],[28,62],[72,86]];
 function partState(p,i){const st=S.parts[p];if(p==="listening"&&S.listen==="na")return"na";if(st&&st.done)return"done";if(i===S.pi)return"open";return i<S.pi?"done":"locked"}
-function renderMap(){show("sMap");startTick();$("mapWho").textContent=S.student.nick+" · "+S.student.room+" "+S.student.school;
+function renderMap(){show("sMap");startTick();$("mapWho").textContent=S.student.name+" · "+S.student.room+" "+S.student.school;
  const done=PARTS.filter((p,i)=>["done","na"].includes(partState(p,i))).length;$("mapProg").textContent="ผ่านแล้ว "+done+"/4 ตอน";
  let h='<svg class="road" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="'+POS.map(p=>p.join(",")).join(" ")+'" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-dasharray="3 2" opacity=".7"/></svg>';
  PARTS.forEach((p,i)=>{const s=partState(p,i);const st=S.parts[p];const n=st?st.resp.length:0;
@@ -323,7 +314,7 @@ function getVoice(){return new Promise(res=>{const ss=window.speechSynthesis;if(
 function paintPlay(){const lft=CFG.LISTEN_MAX_PLAYS-S.cur.plays,b=$("playBtn");b.disabled=lft<=0||speaking;
  $("playLeft").textContent=speaking?"กำลังพูด… ตั้งใจฟังนะ":lft>0?(S.cur.plays?"ฟังซ้ำได้อีก "+lft+" ครั้ง":"กดเพื่อฟัง (ฟังได้ "+lft+" ครั้ง)"):"ฟังครบ "+CFG.LISTEN_MAX_PLAYS+" ครั้งแล้ว เลือกคำตอบได้เลย"}
 let speaking=false;
-function speak(script,level){const ss=window.speechSynthesis;ss.cancel();const rate=["A1","A2"].includes(level)?CFG.LISTEN_RATE_SLOW:CFG.LISTEN_RATE;
+function speak(script,level){const ss=window.speechSynthesis;ss.cancel();const rate=level==="Pre-A1"?CFG.LISTEN_RATE_SLOW:CFG.LISTEN_RATE; // ทุกระดับพูดช้า (Pre-A1 ช้าที่สุด)
  const lines=String(script).split(/\n+/).map(s=>s.trim()).filter(Boolean);speaking=true;$("playBtn").classList.add("speaking");paintPlay();
  lines.forEach((ln,i)=>{const m=ln.match(/^([AB]):\s*(.*)$/);const u=new SpeechSynthesisUtterance(m?m[2]:ln);if(VOICE)u.voice=VOICE;u.lang=(VOICE&&VOICE.lang)||"en-US";u.rate=rate;u.pitch=m&&m[1]==="B"?1.3:m?0.9:1;
   if(i===lines.length-1){u.onend=u.onerror=()=>{speaking=false;$("playBtn").classList.remove("speaking");if(S.cur)paintPlay()}}ss.speak(u)})}
@@ -337,24 +328,25 @@ function endPart(){const i=S.pi;S.cur=null;save();if(i>=PARTS.length-1)return fi
  $("trHow").innerHTML=PARTS.map((p,k)=>`${k<=i?"✅":k===i+1?"▶️":"🔒"} ตอนที่ ${k+1} ${E.PART_TH[p]}`).join("<br>")+`<br><br><b>ต่อไป:</b> ${PART_ICON[nx]} ${E.PART_TH[nx]}`;
  $("trGo").textContent=`ไปตอนที่ ${i+2} ${E.PART_TH[nx]} ▶`;$("trGo").onclick=()=>{S.pi=i+1;save();openPart(i+1)}}
 // ===== results =====
-const ADV={
-grammar:{strong:"ไวยากรณ์แน่นมาก ขึ้น ม.1 ลองฝึกเขียนย่อหน้าสั้น ๆ ใช้ประโยคเชื่อม because, although, which เพื่อต่อยอด",mid:"พื้นฐานไวยากรณ์พร้อมสำหรับ ม.1 ทบทวน Present/Past Simple, Present Continuous และ can/should ให้คล่อง",weak:"ก่อนขึ้น ม.1 ทบทวน Verb to be, Present Simple (เติม s/es) และ Past Simple วันละ 10 นาที ฝึกแต่งประโยคเกี่ยวกับตัวเองทุกวัน",
- lv:["เริ่มจากรูปประโยคง่าย ๆ I am…, I like…, I have… ฝึกพูดและเขียนทุกวัน","ทบทวน is/am/are, do/does และ Past Simple คำกริยาที่ใช้บ่อย","ฝึก Past Simple กับ Present Perfect และการเปรียบเทียบ -er/-est","ฝึกประโยคซับซ้อนขึ้น เช่น if, relative clause (who/which)","ฝึกโครงสร้างระดับสูง เช่น passive, reported speech","ฝึกโครงสร้างขั้นสูงในการเขียนเรียงความ","อ่านหนังสือภาษาอังกฤษสังเกตโครงสร้างประโยคที่หลากหลาย"]},
-vocab:{strong:"คลังคำศัพท์ดีเยี่ยม ขึ้น ม.1 ลองอ่านนิทาน/ข่าวเด็กภาษาอังกฤษ และจดคำใหม่วันละ 5 คำพร้อมประโยคตัวอย่าง",mid:"คำศัพท์พอใช้สำหรับ ม.1 ขยายคลังคำหมวดโรงเรียน วิชาเรียน งานอดิเรก และความรู้สึก",weak:"ก่อนขึ้น ม.1 ท่องคำศัพท์หมวดที่ใช้บ่อย (ครอบครัว อาหาร สัตว์ โรงเรียน) ด้วยบัตรคำหรือแอป วันละ 5–10 คำ",
- lv:["เริ่มจากคำพื้นฐาน สี ตัวเลข สัตว์ ครอบครัว","ขยายคำศัพท์หมวดชีวิตประจำวันและกริยาที่ใช้บ่อย","เรียนคำตรงข้าม คำที่มักใช้คู่กัน และคำบอกความรู้สึก","เรียน phrasal verbs ง่าย ๆ และคำศัพท์ตามเรื่องที่สนใจ","เรียนคำศัพท์เชิงวิชาการและ collocations","เรียนสำนวนและคำที่ความหมายใกล้กัน","อ่านหลากหลายประเภทเพื่อรักษาคลังคำ"]},
-reading:{strong:"อ่านจับใจความได้ดีมาก ขึ้น ม.1 ลองอ่านหนังสือภาษาอังกฤษเล่มบาง ๆ (graded readers) สัปดาห์ละ 1 เล่ม",mid:"ทักษะการอ่านพร้อมสำหรับ ม.1 ฝึกอ่านเรื่องสั้นแล้วสรุปใจความเป็นภาษาไทย 1–2 ประโยค",weak:"ก่อนขึ้น ม.1 ฝึกอ่านข้อความสั้น ๆ (ป้าย ประกาศ ข้อความแชต) วันละ 1 เรื่อง อ่านคำถามก่อนแล้วหาคำตอบ",
- lv:["ฝึกอ่านคำและประโยคสั้น ๆ พร้อมภาพ","อ่านป้าย ประกาศ ข้อความสั้น แล้วตอบว่าใคร ทำอะไร ที่ไหน","อ่านเรื่องสั้น 1 หน้า แล้วหาใจความสำคัญ","อ่านบทความสั้นและฝึกเดาความหมายคำจากบริบท","อ่านบทความยาวขึ้นและวิเคราะห์ความคิดเห็นของผู้เขียน","อ่านงานเขียนหลากหลายรูปแบบ","อ่านวรรณกรรมและบทความเชิงลึกเพื่อความเพลิดเพลิน"]},
-listening:{strong:"ฟังเข้าใจได้ดีมาก ขึ้น ม.1 ลองดูการ์ตูน/สารคดีเด็กภาษาอังกฤษพร้อมซับอังกฤษ แล้วเล่าต่อ",mid:"การฟังพร้อมสำหรับ ม.1 ฟังเพลงหรือคลิปสั้นภาษาอังกฤษวันละ 10 นาที แล้วจดคำที่ได้ยิน",weak:"ก่อนขึ้น ม.1 ฟังคลิปภาษาอังกฤษสำหรับเด็กแบบช้า ฟังซ้ำ 2–3 รอบ และพูดตาม (shadowing)",
- lv:["ฟังคำง่าย ๆ เพลงเด็ก และพูดตาม","ฟังบทสนทนาสั้นในชีวิตประจำวัน ฟังซ้ำแล้วพูดตาม","ฟังเรื่องเล่าสั้น ๆ แล้วจับใจความว่าใคร ทำอะไร","ฟังคลิปข่าวเด็กหรือสารคดีสั้นโดยไม่ดูซับ","ฟังพอดแคสต์และการบรรยายสั้น","ฟังการอภิปรายหลากหลายสำเนียง","ฟังสื่อจริงทุกประเภทเพื่อรักษาทักษะ"]}};
-const OV_ADV=["ยังอยู่ช่วงเริ่มต้น ก่อนขึ้น ม.1 ควรทบทวนพยัญชนะ คำศัพท์พื้นฐาน และประโยคง่าย ๆ กับครูหรือผู้ปกครองทุกวัน","ระดับ A1 ผู้เริ่มต้น: ทบทวนคำศัพท์และประโยคพื้นฐานให้แน่น จะเรียน ม.1 ได้อย่างมั่นใจ","ระดับ A2 พื้นฐาน: พร้อมสำหรับภาษาอังกฤษ ม.1 ตามหลักสูตร ฝึกอ่านและฟังสม่ำเสมอเพื่อขึ้น B1","ระดับ B1 ระดับกลาง: สูงกว่าเกณฑ์ ป.6 เหมาะกับห้องเรียนเสริมภาษาอังกฤษใน ม.1","ระดับ B2 กลางค่อนสูง: ภาษาอังกฤษดีมาก เหมาะกับห้องเรียนพิเศษภาษาอังกฤษและกิจกรรมแข่งขัน","ระดับ C1 สูง: ใช้ภาษาอังกฤษได้คล่องมาก ควรได้รับการต่อยอดเป็นพิเศษ","ระดับ C2 เชี่ยวชาญ: ยอดเยี่ยม ควรมีโปรแกรมพัฒนาเฉพาะบุคคล"];
-const RULE_TH=()=>`<b>กติกาข้อสอบปรับระดับ:</b> ทุกตอนเริ่มที่ระดับ ${CFG.START_LEVEL||"A2"} · ตอบถูกติดกัน ${CFG.UP_AFTER||2} ข้อ ขึ้น 1 ระดับ · ตอบผิดติดกัน ${CFG.DOWN_AFTER||2} ข้อ ลง 1 ระดับ · ไม่มีข้อซ้ำ<br>
-<b>ระดับรายตอน:</b> ระดับสูงสุดที่ทำอย่างน้อย ${CFG.PART_MIN_ATTEMPTS||3} ข้อ และถูกอย่างน้อย ${Math.round((CFG.PART_PASS||0.6)*100)}% (ถ้าไม่มีระดับใดทำถึง ${CFG.PART_MIN_ATTEMPTS||3} ข้อ ใช้ระดับสูงสุดที่เลื่อนขึ้นได้) · ไม่ผ่านเลย = Pre-A1 · ตอบน้อยกว่า ${CFG.MIN_ANSWERS_PART||8} ข้อ = ข้อมูลไม่พอ<br>
-<b>ระดับรวม:</b> เฉลี่ยระดับของตอนที่ประเมินได้ (Pre-A1=0, A1=1, A2=2, B1=3, B2=4, C1=5, C2=6) แล้วปัดเป็นจำนวนเต็ม (.5 ปัดลง) · ตอนที่ "ข้อมูลไม่พอ" หรือ "ไม่ได้ประเมิน" ไม่นำมาคิด<br>
+const ADV={ // คำแนะนำรายตอน: strong/mid/weak + lv[ระดับ] (0 = ต่ำกว่า Pre-A1, 1 = Pre-A1, 2 = A1, 3 = A2)
+grammar:{strong:"ไวยากรณ์พื้นฐานแน่นมาก ขึ้น ม.1 ลองแต่งประโยคเล่าเรื่องเมื่อวาน (Past Simple) วันละ 3 ประโยค",mid:"ทบทวน is/am/are, Present Simple (เติม s/es) และ Past Simple คำกริยาที่ใช้บ่อย ให้คล่องก่อนขึ้น ม.1",weak:"ก่อนขึ้น ม.1 ทบทวน Verb to be, have/has และ Present Simple วันละ 10 นาที ฝึกแต่งประโยคเกี่ยวกับตัวเองทุกวัน",
+ lv:["เริ่มจากรูปประโยคง่าย ๆ I am…, I have…, I like… ฝึกพูดและเขียนทุกวันกับครูหรือผู้ปกครอง","ทบทวน is/am/are, a/an, คำนามพหูพจน์ และ can/can't","ฝึก Present Simple / Present Continuous และ there is/are ให้คล่อง แล้วเริ่ม Past Simple","ฝึก Past Simple คำกริยาไม่ปกติ และการเปรียบเทียบ -er เพื่อเตรียมเนื้อหา ม.1"]},
+vocab:{strong:"คลังคำศัพท์ดีมาก ขึ้น ม.1 ลองอ่านนิทานภาษาอังกฤษสั้น ๆ และจดคำใหม่วันละ 5 คำ",mid:"ขยายคลังคำหมวดโรงเรียน วิชาเรียน งานอดิเรก และความรู้สึก",weak:"ก่อนขึ้น ม.1 ท่องคำศัพท์หมวดที่ใช้บ่อย (ครอบครัว อาหาร สัตว์ โรงเรียน) ด้วยบัตรคำ วันละ 5–10 คำ",
+ lv:["เริ่มจากคำพื้นฐาน สี ตัวเลข สัตว์ ครอบครัว พร้อมภาพ","ทบทวนคำหมวดใกล้ตัว: ร่างกาย เสื้อผ้า ห้องในบ้าน วันในสัปดาห์","ขยายคำหมวดอาชีพ สถานที่ ความรู้สึก และลมฟ้าอากาศ","เรียนคำตรงข้ามและคำบอกเวลา/ฤดูกาล เพื่อเตรียมเนื้อหา ม.1"]},
+reading:{strong:"อ่านจับใจความได้ดีมาก ขึ้น ม.1 ลองอ่านหนังสือภาษาอังกฤษเล่มบาง ๆ (graded readers) สัปดาห์ละ 1 เล่ม",mid:"ฝึกอ่านเรื่องสั้นแล้วตอบว่า ใคร ทำอะไร ที่ไหน เมื่อไร",weak:"ก่อนขึ้น ม.1 ฝึกอ่านข้อความสั้น ๆ (ป้าย ประกาศ ข้อความแชต) วันละ 1 เรื่อง อ่านคำถามก่อนแล้วหาคำตอบ",
+ lv:["ฝึกอ่านคำและประโยคสั้น ๆ พร้อมภาพ","อ่านประโยคสั้น ป้าย และฉลาก แล้วบอกว่าคืออะไร","อ่านเรื่องสั้น 3–5 ประโยค แล้วตอบว่า ใคร ทำอะไร ที่ไหน","อ่านเรื่องเล่า/โปสการ์ดสั้น ๆ ที่เล่าเรื่องในอดีต"]},
+listening:{strong:"ฟังเข้าใจได้ดีมาก ขึ้น ม.1 ลองดูการ์ตูนภาษาอังกฤษพร้อมซับอังกฤษ แล้วเล่าต่อ",mid:"ฟังเพลงหรือคลิปสั้นภาษาอังกฤษวันละ 10 นาที แล้วจดคำที่ได้ยิน",weak:"ก่อนขึ้น ม.1 ฟังคลิปภาษาอังกฤษสำหรับเด็กแบบช้า ฟังซ้ำ 2–3 รอบ และพูดตาม",
+ lv:["ฟังคำง่าย ๆ เพลงเด็ก และพูดตาม","ฟังตัวเลข สี เวลา และคำสั่งสั้น ๆ","ฟังบทสนทนาสั้นในชีวิตประจำวัน ฟังซ้ำแล้วพูดตาม","ฟังเรื่องเล่าสั้น ๆ แล้วจับใจความว่าใคร ทำอะไร เมื่อไร"]}};
+const OV_ADV=["ยังอยู่ช่วงเริ่มต้น ก่อนขึ้น ม.1 ควรทบทวนตัวอักษร คำศัพท์พื้นฐาน และประโยคง่าย ๆ กับครูหรือผู้ปกครองทุกวัน","ระดับ Pre-A1 เริ่มต้น: รู้คำและประโยคพื้นฐานแล้ว ทบทวนต่อเนื่องเพื่อไปถึง A1 ซึ่งเป็นเป้าหมายของ ป.6","ระดับ A1 ผู้เริ่มต้น: ถึงเป้าหมายของนักเรียนจบ ป.6 แล้ว พร้อมเรียนภาษาอังกฤษ ม.1 ฝึกอ่านและฟังสม่ำเสมอ","ระดับ A2 พื้นฐาน: สูงกว่าเป้าหมาย ป.6 (A2 คือเป้าหมายของ ม.3) เหมาะกับการเรียนเสริมที่ท้าทายขึ้นใน ม.1"];
+const RULE_TH=()=>`<b>ข้อสอบฉบับนี้:</b> เนื้อหาระดับ ป.4–ป.6 แบ่งเป็น 3 ระดับ Pre-A1 / A1 / A2 (เป้าหมายนักเรียนจบ ป.6 = A1) · วัดได้สูงสุด A2<br>
+<b>กติกาข้อสอบปรับระดับ:</b> ทุกตอนเริ่มที่ระดับ ${CFG.START_LEVEL||"A1"} · ตอบถูกติดกัน ${CFG.UP_AFTER||2} ข้อ ขึ้น 1 ระดับ · ตอบผิดติดกัน ${CFG.DOWN_AFTER||2} ข้อ ลง 1 ระดับ · ไม่มีข้อซ้ำ<br>
+<b>ระดับรายตอน:</b> ระดับสูงสุดที่ทำอย่างน้อย ${CFG.PART_MIN_ATTEMPTS||3} ข้อ และถูกอย่างน้อย ${Math.round((CFG.PART_PASS||0.6)*100)}% (ถ้าไม่มีระดับใดทำถึง ${CFG.PART_MIN_ATTEMPTS||3} ข้อ ใช้ระดับสูงสุดที่เลื่อนขึ้นได้) · ไม่ผ่านเลย = ต่ำกว่า Pre-A1 · ตอบน้อยกว่า ${CFG.MIN_ANSWERS_PART||8} ข้อ = ข้อมูลไม่พอ<br>
+<b>ระดับรวม:</b> เฉลี่ยระดับของตอนที่ประเมินได้ (ต่ำกว่า Pre-A1=0, Pre-A1=1, A1=2, A2=3) แล้วปัดเป็นจำนวนเต็ม (.5 ปัดลง) · ตอนที่ "ข้อมูลไม่พอ" หรือ "ไม่ได้ประเมิน" ไม่นำมาคิด<br>
 <b>จุดแข็ง/ควรพัฒนา:</b> ตอนที่สูงกว่าระดับรวม ≥ 1 ระดับ = จุดแข็ง · ต่ำกว่า ≥ 1 ระดับ = ควรพัฒนา · ถ้าเท่ากัน ดูระดับเฉลี่ยของข้อช่วงหลัง (ข้อ 9 เป็นต้นไป) ตอนที่สูงสุด/ต่ำสุดต่างกัน ≥ ${CFG.PATH_GAP||0.75} ระดับ<br>
 <b>หมายเหตุ:</b> ผลนี้เป็นการวัดระดับเบื้องต้นสำหรับวางแผนการเรียน ไม่ใช่ใบรับรอง CEFR อย่างเป็นทางการ`;
-function pathSVG(resp){const W=320,H=112,L=34,T=8,B=16,R=6,n=CFG.ITEMS_PER_PART,y=l=>T+(6-l)*((H-T-B)/5),x=k=>L+k*((W-L-R)/(n-1));
+function pathSVG(resp){const W=320,H=112,L=34,T=8,B=16,R=6,n=CFG.ITEMS_PER_PART,NL=LEVELS.length,y=l=>T+(NL-l)*((H-T-B)/Math.max(1,NL-1)),x=k=>L+k*((W-L-R)/(n-1));
  let s=`<svg class="pathsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="เส้นทางระดับข้อสอบ">`;
- for(let l=1;l<=6;l++)s+=`<line x1="${L}" x2="${W-R}" y1="${y(l)}" y2="${y(l)}" stroke="#e3dcc4" stroke-width="1"/><text x="4" y="${y(l)+4}" font-size="10" fill="#6b7393" font-family="Kanit">${LEVELS[l-1]}</text>`;
+ for(let l=1;l<=NL;l++)s+=`<line x1="${L}" x2="${W-R}" y1="${y(l)}" y2="${y(l)}" stroke="#e3dcc4" stroke-width="1"/><text x="4" y="${y(l)+4}" font-size="10" fill="#6b7393" font-family="Kanit">${LEVELS[l-1]}</text>`;
  [1,5,10,15,20,25].forEach(k=>s+=`<text x="${x(k-1)}" y="${H-3}" font-size="9" text-anchor="middle" fill="#9aa0b8">${k}</text>`);
  const pts=resp.map((r,k)=>[x(k),y(LEVELS.indexOf(r.level)+1),r.ok]);
  if(pts.length>1)s+=`<polyline points="${pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")}" fill="none" stroke="#14204a" stroke-width="1.6" stroke-linejoin="round"/>`;
@@ -372,8 +364,8 @@ function showResult(){show("sResult");const R=S.result,st=S.student,ov=R.overall
  const lvClass=i=>i==null?"grey":"L"+i;const mins=Math.round(R.usedMs/60000);
  const basis=ov.level==null?"":ov.included.length===4?"คิดจากครบ 4 ตอน":`คิดจาก ${ov.included.length} ตอน (${ov.included.map(p=>E.PART_TH[p]).join(" ")})`+(P.listening.status==="na"?" · ไม่รวมการฟัง (ไม่ได้ประเมิน)":"");
  let h=`<div class="rcard" id="rcard"><div class="rhead"><div class="logo">ครู<br>ออม</div><div><h2>ผลวัดระดับภาษาอังกฤษ CEFR · ป.6</h2>
- <div class="who"><b>${esc(st.name)}</b> (${esc(st.nick)}) · ${esc(st.room)} ${esc(st.school)}<br>สอบเมื่อ ${new Date(R.at).toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"})} · ใช้เวลา ${mins} นาที${R.timeout?" · <b style='color:#c0392b'>หมดเวลา</b>":""}</div></div></div>
- <div class="lvbox"><div class="badge big ${lvClass(ov.idx)}" id="ovBadge">${ov.level||"—"}<small>ระดับรวม</small></div><div class="lvtext">
+ <div class="who"><b>${esc(st.name)}</b> · ${esc(st.room)} ${esc(st.school)}<br>สอบเมื่อ ${new Date(R.at).toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"})} · ใช้เวลา ${mins} นาที${R.timeout?" · <b style='color:#c0392b'>หมดเวลา</b>":""}</div></div></div>
+ <div class="lvbox"><div class="badge big ${lvClass(ov.idx)}${String(ov.level||"").length>6?" long":""}" id="ovBadge">${ov.level||"—"}<small>ระดับรวม</small></div><div class="lvtext">
  <b>${ov.level==null?"ข้อมูลไม่พอสำหรับประเมินระดับ":"ระดับรวม "+ov.level+(ov.idx>0?" · "+QB.levelInfo[ov.level]:" · ก่อนระดับผู้เริ่มต้น")}</b>
  <div>${basis}${ov.level!=null?" · ค่าเฉลี่ย "+ov.mean:""}</div>
  <div>ตอบแล้ว ${R.answered} ข้อ · <b id="unans">ยังไม่ได้ตอบ ${R.unanswered} ข้อ</b></div></div></div>
@@ -394,7 +386,7 @@ function showResult(){show("sResult");const R=S.result,st=S.student,ov=R.overall
  h+=`<div class="actions noprint"><button class="btn go" onclick="window.print()">🖨️ พิมพ์/บันทึกผล</button><button class="btn reset" id="newBtn">เริ่มใหม่สำหรับผู้สอบคนถัดไป</button></div>`;
  $("resBox").innerHTML=h;$("newBtn").onclick=()=>{if(!confirm("ลบข้อมูลของผู้สอบคนนี้ออกจากเครื่อง แล้วเริ่มใหม่?"))return;localStorage.removeItem(KEY);location.reload()}}
 // ===== send to Apps Script (optional) =====
-function send(){if(!CFG.SAVE_URL||S.sent||!S.student||!S.student.consent)return;const R=S.result,st=S.student;
+function send(){if(!CFG.SAVE_URL||S.sent||!S.student||!(S.student.notice||S.student.consent))return;const R=S.result,st=S.student;
  const parts={};PARTS.forEach(p=>{const x=R.parts[p];parts[p]={level:x.status==="ok"?x.level:"",status:x.status,flag:x.flag,flagTh:x.flagTh,correct:x.c,answered:x.n,pct:x.pct,basis:x.basis,pathScore:x.pathScore,path:x.path}});
  const answers=[];PARTS.forEach(p=>(R.parts[p].resp||[]).forEach((r,k)=>answers.push({part:p,n:k+1,id:r.id,level:r.level,at:r.at,chosen:r.ch==null?"":"ABCD"[r.ch],correct:r.ok})));
  const body={action:"submit",id:S.id,version:QB.version,submittedAt:R.at,student:st,
