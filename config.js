@@ -1,6 +1,6 @@
 // ===== ตั้งค่าแบบทดสอบวัดระดับภาษาอังกฤษ CEFR ป.6 (v2 ปรับระดับอัตโนมัติ) · ครูออม =====
 window.CEFR_CONFIG = {
-  SAVE_URL: "",            // URL ของ Apps Script Web App (เว้นว่าง = ไม่ส่งข้อมูลออก ยังคิดผลทันทีและเก็บในเครื่อง)
+  SAVE_URL: "https://script.google.com/macros/s/AKfycbwDtLfvyN4-JOgpl0GbWaBduNXltchC98OctjrYmexgsG3L4cfzH40vPODYf2pEKI4I/exec",            // URL ของ Apps Script Web App (เว้นว่าง = ไม่ส่งข้อมูลออก ยังคิดผลทันทีและเก็บในเครื่อง)
   TIME_LIMIT_MIN: 90,      // เวลารวมทั้ง 4 ตอน (นาที) เริ่มนับเมื่อกด "เริ่มสอบ" · หมดเวลาจบสอบทันทีและคิดผลจากข้อที่ตอบแล้ว
   ITEMS_PER_PART: 25,      // ข้อต่อตอน (4 ตอน = 100 ข้อ)
   START_LEVEL: "A2",       // ระดับเริ่มต้นของทุกตอน
