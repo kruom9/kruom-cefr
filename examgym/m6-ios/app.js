@@ -205,7 +205,7 @@ function logout() {
 function pRegister() {
   if (!BACKEND) return pRegisterV1();
   view('<div class="loading">กำลังโหลด…</div>');
-  jsonp({action: 'health'}).then(function (d) { if (d && d.auth >= 4) pLogin4(); else if (d && d.auth === 3) pLogin3(); else if (d && d.auth === 2) pAuth(d); else pRegisterV1(); })
+  jsonp({action: 'health'}).then(function (d) { if (d && d.auth >= 5) pLogin5(); else if (d && d.auth === 4) pLogin4(); else if (d && d.auth === 3) pLogin3(); else if (d && d.auth === 2) pAuth(d); else pRegisterV1(); })
     .catch(function () { view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2>เข้าสู่ระบบ</h2><div class="notice err">เชื่อมต่อไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่</div><div class="auth"><button class="btn pri big" id="retry">ลองใหม่</button></div>'); $('#retry').onclick = pRegister; });
 }
 // ---------- เข้าสู่ระบบรุ่น 1 (รายชื่อ) · ใช้เฉพาะเมื่อ backend ยังเป็นรุ่นเก่า ----------
@@ -410,7 +410,7 @@ function pLogin3() {
 function csId() { var cs = sessionStorage.getItem('eg6:cs'); if (!cs) { cs = rid('C'); try { sessionStorage.setItem('eg6:cs', cs); } catch (e) {} } return cs; }
 var NOCRYPTO = 'เบราว์เซอร์นี้ใช้ไม่ได้ ลองเปิดด้วย Chrome หรือ Safari', NETERR = 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
 var UNAME_RE = /^[A-Za-z0-9\u0E01-\u0E4E._-]{3,30}$/;
-function loggedIn(d) { student = {room: d.room, no: d.no, name: d.name, role: d.role, token: d.token, at: Date.now()}; ls('student', student); Q.blocked = ''; go('#/subjects'); flush(true); }
+function loggedIn(d, v) { student = {room: d.room, no: d.no, name: d.name, role: d.role, token: d.token, at: Date.now()}; if (v) student.v = v; ls('student', student); Q.blocked = ''; go('#/subjects'); flush(true); }
 function pLogin4(flash) {
   var cs = csId();
   view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2 class="ah">เข้าสู่ระบบ</h2>' +
@@ -527,6 +527,93 @@ function pReg4() {
   s1();
 }
 
+
+// ---------- เข้าสู่ระบบรุ่น 5: เลขประจำตัว (ครู: อีเมล) + รหัสผ่าน · ครั้งแรก 8888 แล้วตั้งรหัสใหม่เอง · ใช้เมื่อ health auth>=5 ----------
+function pwField(id, label, ph, ac) { return '<label class="cell"><span>' + label + '</span><input id="' + id + '" type="password" autocomplete="' + (ac || 'new-password') + '" autocapitalize="off" maxlength="64" placeholder="' + ph + '"></label>'; }
+function newPwErr(p, p2, ident) {
+  if (p === '8888') return 'ห้ามใช้ 8888 เป็นรหัสใหม่';
+  if (ident && p === ident) return 'ห้ามใช้เลขประจำตัวเป็นรหัสผ่าน';
+  if (p.length < 6) return 'รหัสใหม่ต้องยาวอย่างน้อย 6 ตัว';
+  if (p !== p2) return 'รหัสผ่านทั้งสองช่องไม่ตรงกัน';
+  return '';
+}
+function pLogin5(flash) {
+  var cs = csId();
+  view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2 class="ah">เข้าสู่ระบบ</h2>' +
+    '<form class="auth" id="af" autocomplete="on" novalidate>' +
+    '<div class="group fields"><label class="cell"><span>เลขประจำตัวนักเรียน / อีเมลครู</span><input id="un" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="120" enterkeyhint="next" placeholder="เลข 5 หลัก"></label>' +
+    '<label class="cell"><span>รหัสผ่าน</span><input id="pw" name="password" type="password" autocomplete="current-password" autocapitalize="off" maxlength="64" enterkeyhint="go" placeholder="ครั้งแรก: 8888"></label></div>' +
+    '<p class="ahint">เข้าครั้งแรกใช้รหัส 8888 แล้วตั้งรหัสใหม่ของตัวเอง · ครั้งต่อไปใช้เลขประจำตัว + รหัสใหม่ · ลืมรหัสผ่าน แจ้งครูออม</p>' +
+    '<p class="aerr" id="msg" role="alert" aria-live="polite"></p>' +
+    '<button class="btn pri big" id="go" type="submit">เข้าสู่ระบบ</button>' +
+    '<p class="consent">เข้าสู่ระบบ = ยินยอมให้ส่งผลฝึกถึงครูออม <button type="button" class="xi" data-about="privacy" aria-label="ความเป็นส่วนตัว">ⓘ</button></p></form>');
+  var un = $('#un'), pw = $('#pw'), go_ = $('#go'), msg = $('#msg');
+  function err(t) { msg.textContent = t || ''; }
+  function busy(on) { go_.disabled = !!on; go_.textContent = on ? 'กำลังตรวจ…' : 'เข้าสู่ระบบ'; }
+  err(flash || AUTH_FLASH); AUTH_FLASH = '';
+  [un, pw].forEach(function (x) { x.addEventListener('input', function () { err(''); }); });
+  setTimeout(function () { try { un.focus({preventScroll: true}); } catch (e) {} }, 60);
+  $('#af').onsubmit = function (e) {
+    e.preventDefault(); if (go_.disabled) return;
+    var u = un.value.replace(/\s+/g, ' ').trim(), p = pw.value.trim();
+    if (/^[\d ]+$/.test(u)) u = u.replace(/\s/g, '');
+    if (!u) { err('พิมพ์เลขประจำตัวนักเรียน (ครู: อีเมล)'); un.focus(); return; }
+    if (!p) { err('พิมพ์รหัสผ่าน (ครั้งแรก: 8888)'); pw.focus(); return; }
+    busy(true);
+    sha256hex('eg6pw|' + p).then(function (h) { return apost({action: 'login5', cs: cs, user: u, pw: h}); })
+      .then(function (d) {
+        pw.value = '';
+        if (d && d.ok && d.must_change && d.ticket) { pSetPw5({ticket: d.ticket, name: d.name, ident: u, cs: cs}); return; }
+        if (d && d.ok && d.found) { if (d.pw_default) pSetPw5({opt: d, ident: u}); else loggedIn(d, 5); return; }
+        busy(false);
+        if (d && d.code === 'gone') { pRegister(); return; }
+        err((d && d.message) || NETERR); pw.focus();
+      })
+      .catch(function (e) { busy(false); err(e && e.message === 'nocrypto' ? NOCRYPTO : NETERR); });
+  };
+}
+// ตั้งรหัสใหม่: o.ticket = บังคับ (นักเรียนเข้าด้วย 8888) · o.opt = ไม่บังคับ (ครูที่ยังใช้ 8888 · มี token แล้ว) · o.token = เปลี่ยนจากหน้าผลของฉัน
+function pSetPw5(o) {
+  var forced = !!o.ticket, chg = !!o.token, title = forced ? 'ตั้งรหัสผ่านใหม่' : 'เปลี่ยนรหัสผ่าน';
+  view('<div class="crumb"><a href="' + (chg ? '#/soc/me' : '#/register') + '" id="back">← ' + (chg ? 'ผลของฉัน' : 'ยกเลิก') + '</a></div><h2 class="ah">' + title + '</h2>' +
+    (forced ? '<div class="notice">สวัสดี <b>' + esc(o.name || '') + '</b> · เข้าครั้งแรก ต้องตั้งรหัสผ่านของตัวเองก่อนใช้งาน · ครั้งต่อไปใช้เลขประจำตัว + รหัสใหม่นี้ (8888 จะใช้ไม่ได้อีก)</div>' :
+      o.opt ? '<div class="notice">บัญชีนี้ยังใช้รหัสเริ่มต้น 8888 · แนะนำให้ตั้งรหัสใหม่ (ไม่บังคับ)</div>' : '') +
+    '<form class="auth" id="sf" novalidate><input type="text" name="username" autocomplete="username" value="' + esc(o.ident || '') + '" hidden>' +
+    '<div class="group fields">' + (chg ? pwField('op', 'รหัสผ่านเดิม', 'รหัสผ่านที่ใช้อยู่', 'current-password') : '') +
+    pwField('np', 'รหัสผ่านใหม่', 'อย่างน้อย 6 ตัว') + pwField('np2', 'ยืนยันรหัสผ่านใหม่', 'พิมพ์ซ้ำอีกครั้ง') + '</div>' +
+    '<p class="ahint">อย่างน้อย 6 ตัว · ห้ามเป็น 8888 หรือเลขประจำตัว · จดไว้ให้ดี ลืมแล้วต้องให้ครูออมรีเซ็ต</p>' +
+    '<p class="aerr" id="msg" role="alert" aria-live="polite"></p>' +
+    '<button class="btn pri big" id="go" type="submit">บันทึกรหัสผ่านใหม่</button>' +
+    (o.opt ? '<button class="btn big ghost" id="skip" type="button" style="margin-top:10px">ข้ามไปก่อน</button>' : '') + '</form>');
+  var np = $('#np'), np2 = $('#np2'), op = $('#op'), go_ = $('#go'), msg = $('#msg');
+  function err(t) { msg.textContent = t || ''; }
+  function busy(on) { go_.disabled = !!on; go_.textContent = on ? 'กำลังบันทึก…' : 'บันทึกรหัสผ่านใหม่'; }
+  [np, np2, op].forEach(function (x) { if (x) x.addEventListener('input', function () { err(''); }); });
+  if ($('#skip')) $('#skip').onclick = function () { loggedIn(o.opt, 5); };
+  setTimeout(function () { try { (op || np).focus({preventScroll: true}); } catch (e) {} }, 60);
+  $('#sf').onsubmit = function (e) {
+    e.preventDefault(); if (go_.disabled) return;
+    var p = np.value.trim(), p2 = np2.value.trim(), old = op ? op.value.trim() : '8888';
+    if (op && !old) { err('พิมพ์รหัสผ่านเดิม'); op.focus(); return; }
+    var bad = newPwErr(p, p2, o.ident); if (!bad && op && p === old) bad = 'รหัสใหม่ต้องไม่ซ้ำรหัสเดิม';
+    if (bad) { err(bad); (bad.indexOf('ไม่ตรง') >= 0 ? np2 : np).focus(); return; }
+    busy(true);
+    Promise.all([sha256hex('eg6pw|' + p), sha256hex('eg6pw|' + old)]).then(function (h) {
+      return forced ? apost({action: 'setpw', cs: o.cs, ticket: o.ticket, newpw: h[0]}) : apost({action: 'chpw', token: o.token || o.opt.token, old: h[1], newpw: h[0]});
+    }).then(function (d) {
+      if (d && d.ok && d.found) {
+        np.value = np2.value = ''; if (op) op.value = '';
+        if (chg) { student.token = d.token; student.v = 5; ls('student', student); ME_FLASH = 'เปลี่ยนรหัสผ่านแล้ว ✓ ครั้งต่อไปใช้รหัสใหม่นี้'; go('#/soc/me'); }
+        else loggedIn(d, 5);
+        return;
+      }
+      busy(false);
+      if (d && (d.code === 'ticket')) { pLogin5(d.message); return; }
+      if (d && d.code === 'auth') { relogin(d.message); return; }
+      err((d && d.message) || NETERR);
+    }).catch(function (e) { busy(false); err(e && e.message === 'nocrypto' ? NOCRYPTO : NETERR); });
+  };
+}
 function socStats() {
   var p = prog(), done = 0, ok = 0, by = {};
   BANK.items.forEach(function (it) { var x = p.items[it.id]; var b = by[it.sara] = by[it.sara] || {n: 0, done: 0, ok: 0}; b.n++; if (x) { done++; b.done++; if (x.ok) { ok++; b.ok++; } } });
@@ -702,15 +789,18 @@ function pMockReview(id, i) {
   $('#prev').onclick = function () { go('#/soc/mock/review/' + id + '/' + (i - 1)); };
   $('#next').onclick = function () { go('#/soc/mock/review/' + id + '/' + (i + 1)); };
 }
+var ME_FLASH = '';
 function pMe() {
   var s = socStats(), p = s.p, topics = {};
   BANK.items.forEach(function (it) { var t = topics[it.topic] = topics[it.topic] || {n: 0, d: 0, o: 0}; t.n++; var x = p.items[it.id]; if (x) { t.d++; if (x.ok) t.o++; } });
   var q = Q.list().filter(function (x) { return x.stu === pkey() && x.type !== 'session'; }).length;
-  view('<div class="crumb"><a href="#/soc">← สังคมศึกษา</a></div><h2>ผลของฉัน · สังคมศึกษา</h2><p class="muted small">ข้อมูลในเครื่องนี้ · ' + (student.preview || !BACKEND ? 'โหมดตัวอย่าง ไม่ได้ส่งไปที่ครู' : (q ? 'รอส่งให้ครู ' + q + ' รายการ (ส่งอัตโนมัติเมื่อออนไลน์)' : 'ส่งให้ครูออมครบแล้ว ✓')) + '</p>' +
+  view('<div class="crumb"><a href="#/soc">← สังคมศึกษา</a></div><h2>ผลของฉัน · สังคมศึกษา</h2>' + (ME_FLASH ? '<div class="notice" id="meflash" role="status">' + esc(ME_FLASH) + '</div>' : '') + '<p class="muted small">ข้อมูลในเครื่องนี้ · ' + (student.preview || !BACKEND ? 'โหมดตัวอย่าง ไม่ได้ส่งไปที่ครู' : (q ? 'รอส่งให้ครู ' + q + ' รายการ (ส่งอัตโนมัติเมื่อออนไลน์)' : 'ส่งให้ครูออมครบแล้ว ✓')) + '</p>' +
     '<div class="stats"><div class="stat"><b>' + s.done + '/100</b><span>ข้อที่ทำแล้ว</span></div><div class="stat"><b>' + pct(s.ok, s.done) + '%</b><span>ถูก (ผลล่าสุดของแต่ละข้อ)</span></div><div class="stat"><b>' + mins(p.active) + '</b><span>เวลาฝึกจริง</span></div><div class="stat"><b>' + p.mocks.length + '</b><span>ครั้งที่สอบเสมือนจริง</span></div></div>' +
     '<div class="card"><table class="tbl"><tr><th>สาระ / หัวข้อย่อย</th><th class="n">ทำแล้ว</th><th class="n">ถูก</th></tr>' + BANK.saras.map(function (sa) { var b = s.by[sa.id]; return '<tr><td><b>' + sa.id + ' ' + esc(sa.name) + '</b></td><td class="n"><b>' + b.done + '/' + b.n + '</b></td><td class="n"><b>' + (b.done ? pct(b.ok, b.done) + '%' : '–') + '</b></td></tr>' + sa.topics.map(function (t) { var x = topics[t.id]; return x ? '<tr><td class="small" style="padding-left:22px">' + t.id + ' ' + esc(t.name) + '</td><td class="n small">' + x.d + '/' + x.n + '</td><td class="n small">' + (x.d ? pct(x.o, x.d) + '%' : '–') + '</td></tr>' : ''; }).join(''); }).join('') + '</table></div>' +
     '<h3 style="margin-top:22px">ประวัติสอบเสมือนจริง</h3>' + (p.mocks.length ? '<div class="rv">' + p.mocks.slice().reverse().map(function (r) { return '<button data-id="' + r.id + '"><span class="m r">' + pct(r.score, r.total) + '</span><span class="t"><b>' + esc(r.name) + '</b> · ' + r.score + '/' + r.total + ' · ' + thDate(r.at) + '</span></button>'; }).join('') + '</div>' : '<p class="muted">ยังไม่เคยสอบ · <a href="#/soc/mock">ลองสอบเสมือนจริง</a></p>') +
-    '<div class="row" style="margin-top:22px"><button class="btn ghost" id="lo">ออกจากระบบ (เปลี่ยนชื่อ)</button></div>');
+    '<div class="row" style="margin-top:22px">' + (student.v === 5 && student.token && !student.preview ? '<button class="btn" id="chpw">เปลี่ยนรหัสผ่าน</button>' : '') + '<button class="btn ghost" id="lo">ออกจากระบบ (เปลี่ยนชื่อ)</button></div>');
+  ME_FLASH = '';
+  if ($('#chpw')) $('#chpw').onclick = function () { pSetPw5({token: student.token}); };
   Array.prototype.forEach.call(document.querySelectorAll('[data-id]'), function (b) { b.onclick = function () { go('#/soc/mock/result/' + b.dataset.id); }; });
   $('#lo').onclick = function () { confirmBox('<h3>ออกจากระบบ?</h3><p>ข้อมูลที่บันทึกแล้วยังอยู่ครบ</p>', 'ออกจากระบบ', logout); };
 }
