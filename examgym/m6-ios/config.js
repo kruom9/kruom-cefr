@@ -1,12 +1,12 @@
 /* Exam Gym ม.6 · ตั้งค่า · ใส่ URL ของ Apps Script (ลงท้าย /exec) ที่ SAVE_URL หลังครูออม Deploy แล้ว */
 window.EXAMGYM_CONFIG = {
   SAVE_URL: "https://script.google.com/macros/s/AKfycbzUskZeyoyExG8gUefju4zc0S0FREwEKt3mE_7vPoRIPkoHVIloXR81jc9BvAqdUxLv/exec",
-  VERSION: "examgym-m6-ios-soc-2569-10-27-r6fb",
+  VERSION: "examgym-m6-ios-soc-2569-10-27-r7fb",
   SCHOOL: "โรงเรียนปิยมิตรวิทยา ฝ่ายมัธยม",
   PREVIEW_WHEN_NO_BACKEND: true,
   // ระบบเข้าสู่ระบบ: 'apps_script' (เดิม · Apps Script + Sheet) | 'firebase' (Firebase Auth + Firestore · ผลยังส่งเข้า Sheet ผ่าน SAVE_URL)
   // สลับกลับได้ทันทีโดยแก้ค่านี้ (rollback)
-  AUTH_PROVIDER: "apps_script",
+  AUTH_PROVIDER: "firebase",
   FIREBASE: {
     // ค่าระบุตัวแอปเว็บ (สาธารณะ ไม่ใช่ความลับ) · โปรเจกต์ kruom-examgym-m6
     config: {
