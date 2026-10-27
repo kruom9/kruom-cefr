@@ -106,7 +106,7 @@ var PAGE = {
   },
   home: function () {
     var h2 = $('h2', app); setT(h2, 'วิชา'); hide($('p.muted', app));
-    var ons = $$('.subj > .s.on', app);
+    var ons = $$('.subj > .s.on:not(.dash-link)', app), dl = $('#dashLink', app);
     if (ons.length && once(ons[0], 'h')) {
       var hero = document.createElement('div'); hero.className = 'xhero'; ons[0].parentNode.parentNode.insertBefore(hero, ons[0].parentNode);
       ons.forEach(function (on, i) {
@@ -114,6 +114,7 @@ var PAGE = {
         on.innerHTML = '<i class="xic big' + (id === 'soc' ? '' : ' c' + (i % 6 + 1)) + '">' + (id === 'soc' ? ICON_SOC : glyph(nm)) + '</i><span class="xt"><b>' + nm.replace(/</g, '&lt;') + '</b><small>' + examOf(id) + '</small></span>' + ring(d, n, 'ทำแล้ว');
         hero.appendChild(on);
       });
+      if (dl && once(dl, 'd')) { var dsm = $('small', dl); dl.innerHTML = '<i class="xic big c3" aria-hidden="true">ครู</i><span class="xt"><b>แดชบอร์ดครู</b><small>' + (dsm ? dsm.textContent : '').replace(/</g, '&lt;') + '</small></span>'; hero.insertBefore(dl, hero.firstChild); }
       if ($('.s.off', app)) { var gh = document.createElement('h3'); gh.className = 'gh'; gh.textContent = 'เร็ว ๆ นี้'; hero.insertAdjacentElement('afterend', gh); }
     }
     $$('.s.off', app).forEach(function (s, i) {
