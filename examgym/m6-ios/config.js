@@ -1,9 +1,11 @@
 /* Exam Gym ม.6 · ตั้งค่า · ใส่ URL ของ Apps Script (ลงท้าย /exec) ที่ SAVE_URL หลังครูออม Deploy แล้ว */
 window.EXAMGYM_CONFIG = {
   SAVE_URL: "https://script.google.com/macros/s/AKfycbzUskZeyoyExG8gUefju4zc0S0FREwEKt3mE_7vPoRIPkoHVIloXR81jc9BvAqdUxLv/exec",
-  VERSION: "examgym-m6-ios-multi-2569-10-27-r7fb-t1",
+  VERSION: "examgym-m6-ios-multi-2569-10-27-r8dash",
   SCHOOL: "โรงเรียนปิยมิตรวิทยา ฝ่ายมัธยม",
   PREVIEW_WHEN_NO_BACKEND: true,
+  // แดชบอร์ดครู (#/admin): รูปนักเรียนปิดไว้ (PDPA · รอครูออมอนุมัติแบบฟอร์มยินยอม) · ห้ามเปิดก่อนอนุมัติ
+  DASH_PHOTOS: false,
   // ระบบเข้าสู่ระบบ: 'apps_script' (เดิม · Apps Script + Sheet) | 'firebase' (Firebase Auth + Firestore · ผลยังส่งเข้า Sheet ผ่าน SAVE_URL)
   // สลับกลับได้ทันทีโดยแก้ค่านี้ (rollback)
   AUTH_PROVIDER: "firebase",

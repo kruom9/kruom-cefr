@@ -7,6 +7,8 @@
 'use strict';
 var CFG = window.EXAMGYM_CONFIG || {}, AGG = window.DashAgg;
 var TTL = 60000, PHOTO_PX = 256, PHOTO_MAX = 35000;
+// รูปนักเรียน: ปิดไว้จนกว่าครูออมอนุมัติแบบฟอร์มขอความยินยอม (PDPA) · เปิดด้วย DASH_PHOTOS: true ใน config.js (และต้อง deploy กฎ photos ก่อน)
+var PHOTOS = CFG.DASH_PHOTOS === true;
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); }
@@ -25,10 +27,12 @@ function initials(s) { var t = cleanName(s).trim().split(/\s+/); return esc((t[0
 
 // ---------- แหล่งข้อมูล ----------
 function post(url, o) { return fetch(url, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(o), redirect: 'follow'}).then(function (r) { return r.json(); }); }
-function SheetAdapter(url, token) {
+// auth: token ของ Apps Script (string) หรือ ฟังก์ชันคืน Promise<Firebase ID token> (AUTH_PROVIDER firebase → ส่งเป็น fbtoken)
+function SheetAdapter(url, auth) {
   this.name = 'sheet';
-  this.overview = function () { return post(url, {action: 'dash', token: token}); };
-  this.student = function (sid) { return post(url, {action: 'dash', token: token, sid: String(sid)}); };
+  var body = function (o) { if (typeof auth !== 'function') { o.token = auth; return Promise.resolve(o); } return Promise.resolve(auth()).then(function (t) { o.fbtoken = t; return o; }); };
+  this.overview = function () { return body({action: 'dash'}).then(function (o) { return post(url, o); }); };
+  this.student = function (sid) { return body({action: 'dash', sid: String(sid)}).then(function (o) { return post(url, o); }); };
 }
 // fsApi = {list(col) → Promise<[{id, ...data}]>, get(col, id) → Promise<data|null>, set(col, id, data), del(col, id)}
 function msOf(v) { if (!v) return 0; if (typeof v === 'number') return v; if (v.toMillis) return v.toMillis(); if (v.seconds != null) return v.seconds * 1000; var t = new Date(v).getTime(); return isFinite(t) ? t : 0; }
@@ -148,7 +152,8 @@ function adapter() {
   var st = S.ctx.student, want = String(CFG.DASH_SOURCE || 'sheet');
   var p = want === 'firestore' ? firestoreApi() : Promise.resolve(null);
   return p.then(function (api) {
-    S.ad = api ? new FirestoreAdapter(api) : new SheetAdapter(S.ctx.saveUrl, st.token);
+    S.ad = api ? new FirestoreAdapter(api) : new SheetAdapter(S.ctx.saveUrl, S.ctx.fbToken || st.token);
+    if (!PHOTOS) { S.photos = null; return S.ad; } // ปิดรูป: ไม่อ่าน/เขียน photos ใด ๆ
     var pp = api ? Promise.resolve(api) : String(CFG.PHOTO_STORE || '') === 'firestore' ? firestoreApi() : Promise.resolve(null);
     return pp.then(function (a2) { S.photos = a2 ? new FirestorePhotoStore(a2, st.name || '') : new LocalPhotoStore(); return S.ad; });
   });
@@ -260,6 +265,7 @@ function bindPicker(d, sufx) {
   };
 }
 function photoBlock(s) {
+  if (!PHOTOS) return '<div class="dphoto"><div class="dph"><span class="av big" aria-hidden="true">' + initials(s.name) + '</span></div></div>';
   return '<div class="dphoto"><div class="dph" id="dPh"><span class="av big" aria-hidden="true">' + initials(s.name) + '</span></div>' +
     '<div class="dph-b"><label class="btn small">ถ่ายรูป<input type="file" accept="image/*" capture="environment" id="dCam" hidden></label>' +
     '<label class="btn small">เลือกรูป<input type="file" accept="image/*" id="dFile" hidden></label>' +
@@ -273,6 +279,7 @@ function showPhoto(p, s) {
 }
 function bindPhoto(s) {
   var st = S.photos, note = $('#dPhN');
+  if (!PHOTOS || !st || !note) return;
   note.textContent = 'รูปเห็นเฉพาะครู · ' + st.note;
   st.get(s.sid).then(function (p) { showPhoto(p, s); }, function () {});
   var onPick = function () {
@@ -340,13 +347,13 @@ function pSubject(sid, subId) {
 
 // ---------- เส้นทาง ----------
 function route(h, ctx) {
-  if (ctx) { if (S.ctx && S.ctx.student && ctx.student && S.ctx.student.token !== ctx.student.token) reset(); S.ctx = ctx; } S.h = h; // เปลี่ยนผู้ใช้ = ล้างข้อมูลในหน่วยความจำ
+  if (ctx) { if (S.ctx && S.ctx.student && ctx.student && (S.ctx.student.token !== ctx.student.token || S.ctx.student.uid !== ctx.student.uid)) reset(); S.ctx = ctx; } S.h = h; // เปลี่ยนผู้ใช้ = ล้างข้อมูลในหน่วยความจำ
   var m;
   if ((m = h.match(/^\/admin\/s\/(\d{3,8})\/([a-z0-9]+)$/))) return pSubject(m[1], m[2]);
   if ((m = h.match(/^\/admin\/s\/(\d{3,8})$/))) return pStudent(m[1]);
   return pOverview();
 }
 function reset() { S.ad = null; S.photos = null; S.ov = null; S.det = {}; }
-window.EGDash = {route: route, reset: reset, resizePhoto: resizePhoto, b64Bytes: b64Bytes, rawFromFirestore: rawFromFirestore,
+window.EGDash = {photosOn: function () { return PHOTOS; }, route: route, reset: reset, resizePhoto: resizePhoto, b64Bytes: b64Bytes, rawFromFirestore: rawFromFirestore,
   SheetAdapter: SheetAdapter, FirestoreAdapter: FirestoreAdapter, FirestorePhotoStore: FirestorePhotoStore, LocalPhotoStore: LocalPhotoStore, fsApiFromModular: fsApiFromModular, _state: S};
 })();

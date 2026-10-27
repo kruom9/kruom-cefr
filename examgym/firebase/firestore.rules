@@ -4,6 +4,7 @@ rules_version = '2';
 //                   Owner may ONLY flip mustChange true→false (after updatePassword) + stamp pwChangedAt.
 // - roles/{uid}   : {teacher:true} (admin-created only) → teacher read access.
 // - results/{uid_eid} : one answer/mock event, immutable, owner-created, owner/teacher read.
+//                   subject (optional, both answer + mock) must be one of the subject codes; missing = soc (old clients).
 // - sessions/{uid_sessionId} : active-time summary, owner create/update, owner/teacher read.
 // Anything else: denied. Accounts that sign up via the public API key have no users doc → can do nothing.
 service cloud.firestore {
@@ -22,6 +23,8 @@ service cloud.firestore {
     function int(v, lo, hi) { return v is int && v >= lo && v <= hi; }
     function numIn(v, lo, hi) { return (v is int || v is float) && v >= lo && v <= hi; }
     function idOk(v) { return v is string && v.matches('^[A-Za-z0-9_:.-]{6,80}$'); }
+    // รหัสวิชา (event.subject) · ต้องตรงกับ SUBJECTS ใน m6-ios/app.js และ SUBJ_TH ใน Apps Script v7_dash_fb
+    function subjOk(d) { return !('subject' in d) || d.subject in ['soc','thai','eng','phy','chem','bio','sci','tgat1','tgat2','tgat3']; }
 
     match /users/{uid} {
       allow get: if signedIn() && (me() == uid || isTeacher());
@@ -44,7 +47,7 @@ service cloud.firestore {
         && d.keys().hasAll(['type','eid','uid','sid','itemId','mode','savedAt'])
         && d.type == 'answer'
         && str(d.itemId, 20) && d.mode in ['practice', 'review', 'mock']
-        && (!('subject' in d) || str(d.subject, 20)) && (!('set' in d) || str(d.set, 20))
+        && subjOk(d) && (!('set' in d) || str(d.set, 20))
         && (!('sessionId' in d) || str(d.sessionId, 80)) && (!('topic' in d) || str(d.topic, 10))
         && (!('sara' in d) || int(d.sara, 1, 5)) && (!('attempt' in d) || int(d.attempt, 1, 999))
         && (!('chosen' in d) || d.chosen == '' || int(d.chosen, 1, 5))
@@ -53,9 +56,9 @@ service cloud.firestore {
         && (!('version' in d) || str(d.version, 60));
     }
     function mockOk(d) {
-      return d.keys().hasOnly(['type','eid','uid','sid','room','set','score','total','bySara','usedSec','timeout','answered','ts','version','savedAt'])
+      return d.keys().hasOnly(['type','eid','uid','sid','room','subject','set','score','total','bySara','usedSec','timeout','answered','ts','version','savedAt'])
         && d.keys().hasAll(['type','eid','uid','sid','set','score','total','savedAt'])
-        && d.type == 'mock' && str(d.set, 20)
+        && d.type == 'mock' && str(d.set, 20) && subjOk(d)
         && int(d.total, 1, 200) && numIn(d.score, 0, d.total)
         && (!('bySara' in d) || (d.bySara is map && d.bySara.size() <= 5))
         && (!('usedSec' in d) || numIn(d.usedSec, 0, 21600)) && (!('timeout' in d) || d.timeout is bool)

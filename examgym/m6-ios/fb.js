@@ -96,7 +96,7 @@ function signOut() { return load().then(function () { return M.auth.signOut(auth
 function idToken() { return ready().then(function () { var u = auth.currentUser; if (!u) throw err('auth/no-current-user'); return u.getIdToken(); }); }
 
 var A_KEYS = ['eid','sessionId','subject','mode','set','itemId','sara','topic','attempt','chosen','correct','sec','len','ts'];
-var M_KEYS = ['eid','set','score','total','bySara','usedSec','timeout','answered','ts'];
+var M_KEYS = ['eid','subject','set','score','total','bySara','usedSec','timeout','answered','ts'];
 function pick(ev, keys) { var o = {}; keys.forEach(function (k) { if (ev[k] !== undefined && ev[k] !== null) o[k] = ev[k]; }); return o; }
 function intish(o, keys) { keys.forEach(function (k) { if (typeof o[k] === 'number') o[k] = Math.round(o[k]); }); return o; }
 // บันทึกเหตุการณ์ลง Firestore · คืนรายการ eid ที่อยู่ใน Firestore แล้ว (ใหม่หรือซ้ำ) · ไม่โยน error ถ้าบางรายการไม่ผ่าน
@@ -114,8 +114,13 @@ function saveEvents(events, prof, version) {
         Object.keys(base).forEach(function (k) { data[k] = base[k]; });
         data.savedAt = M.fs.serverTimestamp();
         ref = M.fs.doc(db, 'results', u.uid + '_' + ev.eid);
-        return timeout(M.fs.setDoc(ref, data), 15000).then(function () { return ev.eid; }, function (e) {
-          if (e && e.code === 'permission-denied') return timeout(M.fs.getDoc(ref), 10000).then(function (s) { return s.exists() ? ev.eid : (ev._bad = true, ev.eid); }, function () { return null; });
+        var put = function (d) { return timeout(M.fs.setDoc(ref, d), 15000); };
+        return put(data).catch(function (e) {
+          // กฎ Firestore รุ่นเก่ายังไม่รับ subject ในผลสอบ → บันทึกซ้ำโดยไม่มี subject (Sheet ยังได้ subject ครบจากคิว)
+          if (e && e.code === 'permission-denied' && 'subject' in data) { var d2 = {}; Object.keys(data).forEach(function (k) { if (k !== 'subject') d2[k] = data[k]; }); return put(d2); }
+          throw e;
+        }).then(function () { return ev.eid; }, function (e) {
+          if (e && e.code === 'permission-denied') return timeout(M.fs.getDoc(ref), 10000).then(function (s) { return s.exists() ? ev.eid : (ev._bad = true, ev.eid); }, function (e2) { return e2 && e2.code === 'permission-denied' ? (ev._bad = true, ev.eid) : null; }); // ไม่มีเอกสาร (อ่านไม่ได้) = Firestore ไม่รับ → ยังส่งเข้า Sheet
           return null;
         });
       }

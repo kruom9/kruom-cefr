@@ -23,6 +23,9 @@ var SUBJECTS = [
   {id: 'tgat2', name: 'TGAT2 การคิดอย่างมีเหตุผล', exam: 'TGAT2'},
   {id: 'tgat3', name: 'TGAT3 สมรรถนะการทำงาน', exam: 'TGAT3'}
 ];
+// รหัสวิชาที่ส่งไปกับผล (event.subject) = id ด้านบนเท่านั้น · Apps Script/Firestore ตรวจกับรายการเดียวกัน (ดู examgym/SUBJECT_CODES.md)
+var SUBJ_CODES = SUBJECTS.map(function (x) { return x.id; });
+function subjCode(id) { id = String(id || ''); return SUBJ_CODES.indexOf(id) >= 0 ? id : 'soc'; }
 var SHORT_SOC = {1: 'ศาสนา', 2: 'หน้าที่พลเมือง', 3: 'เศรษฐศาสตร์', 4: 'ประวัติศาสตร์', 5: 'ภูมิศาสตร์'};
 function bankOk(b) { return !!(b && b.meta && Array.isArray(b.items) && b.items.length && Array.isArray(b.saras) && Array.isArray(b.mocks)); }
 function bankOf(id) { var b = window[id.toUpperCase() + '_BANK']; return bankOk(b) ? b : null; }
@@ -169,7 +172,7 @@ function record(it, chosen, mode, set, sec) {
   var ok = chosen !== '' && chosen != null && isRight(it, chosen);
   x.att++; if (x.att === 1) x.first = ok; x.last = chosen; x.ok = ok; x.at = Date.now(); if (!ok && chosen !== '') x.wrong = (x.wrong || 0) + 1;
   saveProg(p); ACT.items++;
-  Q.add({type: 'answer', eid: rid('A'), sessionId: ACT.sessionId, subject: SUB, mode: mode, set: set || '', itemId: it.id, sara: it.sara, topic: it.topic, attempt: x.att, chosen: chosen === '' || chosen == null ? '' : Number(chosen), correct: ok, sec: Math.round(sec * 10) / 10, len: itemLen(it)});
+  Q.add({type: 'answer', eid: rid('A'), sessionId: ACT.sessionId, subject: subjCode(SUB), mode: mode, set: set || '', itemId: it.id, sara: it.sara, topic: it.topic, attempt: x.att, chosen: chosen === '' || chosen == null ? '' : Number(chosen), correct: ok, sec: Math.round(sec * 10) / 10, len: itemLen(it)});
   return ok;
 }
 
@@ -935,7 +938,7 @@ function submitMock(R, timeout) {
   });
   var res = {id: R.id, set: R.set, name: R.name, score: score, total: R.ids.length, bySara: by, usedSec: Math.round((now - R.start) / 1000), timeout: !!timeout, at: Date.now(), ids: R.ids, ans: R.ans, answered: Object.keys(R.ans).length};
   var p = prog(); p.mocks.push(res); if (p.mocks.length > 30) p.mocks = p.mocks.slice(-30); saveProg(p);
-  Q.add({type: 'mock', eid: R.id, subject: SUB, set: R.set, score: score, total: R.ids.length, bySara: by, usedSec: res.usedSec, timeout: !!timeout, answered: res.answered});
+  Q.add({type: 'mock', eid: R.id, subject: subjCode(SUB), set: R.set, score: score, total: R.ids.length, bySara: by, usedSec: res.usedSec, timeout: !!timeout, answered: res.answered});
   R.done = true; ls(K, R); flush(true);
   go(base() + '/mock/result/' + R.id);
 }
@@ -990,7 +993,7 @@ function pSources() {
 }
 
 // ---------- แดชบอร์ดครู (โหลด dash-agg.js / dash.js / dash.css เฉพาะเมื่อครูเปิด) ----------
-function isTeacher() { return !!(student && !student.preview && student.role === 'teacher' && student.token); }
+function isTeacher() { return !!(student && !student.preview && student.role === 'teacher' && (student.token || (student.fb && FB))); }
 var DASH = null;
 function loadDash() {
   if (DASH) return DASH;
@@ -1005,7 +1008,7 @@ function pAdmin(h) {
   if (!window.EGDash) view('<div class="loading">กำลังโหลดแดชบอร์ด…</div>');
   loadDash().then(function () {
     if (location.hash.replace(/^#/, '') !== h) return;
-    window.EGDash.route(h, {student: student, saveUrl: SAVE_URL, view: view, go: go, subjects: SUBJECTS});
+    window.EGDash.route(h, {student: student, saveUrl: SAVE_URL, view: view, go: go, subjects: SUBJECTS, fbToken: student.fb && FB ? function () { return FB.idToken(); } : null});
   }, function () { view('<h2>แดชบอร์ดครู</h2><div class="notice err">โหลดแดชบอร์ดไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่</div>'); });
 }
 
