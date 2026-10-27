@@ -42,7 +42,7 @@ function cite(it) { return 'ข้อสอบ A-Level 70 สังคมศึ�
 function itemsOf(f) { return BANK.items.filter(f).sort(function (a, b) { return a.sara - b.sara || b.year - a.year || a.n - b.n; }); }
 
 // ---------- student & progress ----------
-var student = ls('student'); // {room,no,name,preview,code,sid}
+var student = ls('student'); // {room,no,name,role,token} (รุ่น 2) · {room,no,name,code,sid} (รุ่น 1) · {preview}
 function pkey() { return student ? (student.preview ? 'preview' : student.room + '#' + student.no) : 'none'; }
 function prog() { var p = ls('p:' + pkey()) || {}; p.items = p.items || {}; p.mocks = p.mocks || []; p.active = p.active || 0; return p; }
 function saveProg(p) { ls('p:' + pkey(), p); }
@@ -78,20 +78,23 @@ function updSync() {
   else { el.className = 'sync ok'; el.textContent = 'บันทึกแล้ว ✓'; }
 }
 function stuPayload() { return {room: student.room, name: student.name, no: student.no, sid: student.sid || '', code: student.code || ''}; }
+function relogin(msg) { student = null; ls('student', null); Q.blocked = ''; AUTH_FLASH = msg || 'กรุณาเข้าสู่ระบบอีกครั้ง'; go('#/register'); }
+var AUTH_FLASH = '';
 function flush(force) {
   if (!BACKEND || !student || student.preview || Q.busy || Q.blocked) return Promise.resolve();
-  var mine = Q.list().filter(function (x) { return x.stu === pkey(); });
+  var pk = pkey(), mine = Q.list().filter(function (x) { return x.stu === pk; });
   if (!mine.length) { Q.state = 'ok'; updSync(); return Promise.resolve(); }
   if (!force && Date.now() - Q.last < Math.min(120000, 4000 * Math.pow(2, Q.fails))) return Promise.resolve();
   Q.busy = true; Q.last = Date.now();
   var batch = mine.slice(0, 40), ids = batch.map(function (x) { return x.eid; });
-  var body = JSON.stringify({action: 'events', api: 1, version: VERSION, student: stuPayload(), events: batch.map(function (x) { var y = {}; for (var k in x) if (k !== 'stu') y[k] = x[k]; return y; })});
-  function drop(list) { var set = {}; list.forEach(function (e) { set[e] = 1; }); Q.put(Q.list().filter(function (x) { return !(x.stu === pkey() && set[x.eid]); })); }
+  var body = JSON.stringify({action: 'events', api: student.token ? 2 : 1, version: VERSION, token: student.token || undefined, student: student.token ? undefined : stuPayload(), events: batch.map(function (x) { var y = {}; for (var k in x) if (k !== 'stu') y[k] = x[k]; return y; })});
+  function drop(list) { var set = {}; list.forEach(function (e) { set[e] = 1; }); Q.put(Q.list().filter(function (x) { return !(x.stu === pk && set[x.eid]); })); }
   return fetch(SAVE_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: body, redirect: 'follow'})
     .then(function (r) { return r.json(); })
     .then(function (d) {
       if (d && d.ok) { drop((d.saved || []).concat(d.dup || [], d.bad || [])); Q.fails = 0; Q.state = 'ok'; }
       else if (d && d.error === 'not on roster') { Q.blocked = d.message || 'ไม่พบชื่อในรายชื่อ'; }
+      else if (d && d.error === 'need login') { relogin(d.message); }
       else throw new Error('bad reply');
     })
     .catch(function () {
@@ -103,7 +106,7 @@ function flush(force) {
         .then(function (d) { var have = (d && d.have) || []; drop(have.concat(batch.filter(function (x) { return x.type === 'session'; }).map(function (x) { return x.eid; }))); Q.fails = have.length ? 0 : Q.fails + 1; Q.state = 'ok'; })
         .catch(function () { Q.fails++; Q.state = 'off'; });
     })
-    .then(function () { Q.busy = false; updSync(); if (Q.list().some(function (x) { return x.stu === pkey(); }) && Q.fails === 0 && !Q.blocked) setTimeout(function () { flush(true); }, 300); });
+    .then(function () { Q.busy = false; updSync(); if (student && Q.list().some(function (x) { return x.stu === pkey(); }) && Q.fails === 0 && !Q.blocked) setTimeout(function () { flush(true); }, 300); });
 }
 window.addEventListener('online', function () { Q.fails = 0; flush(true); });
 window.addEventListener('offline', updSync);
@@ -138,7 +141,7 @@ function record(it, chosen, mode, set, sec) {
 // ---------- render helpers ----------
 function setWho() {
   var w = $('#who');
-  if (student) { w.hidden = false; w.textContent = student.preview ? 'ครู/ผู้ตรวจ (ตัวอย่าง)' : student.room + ' เลขที่ ' + student.no + ' · ' + student.name.replace(/^(นางสาว|นาย|นาง|เด็กชาย|เด็กหญิง)/, ''); }
+  if (student) { w.hidden = false; w.textContent = student.preview ? 'ครู/ผู้ตรวจ (ตัวอย่าง)' : student.role === 'teacher' ? 'ครู · ' + student.name : student.room + ' เลขที่ ' + student.no + ' · ' + student.name.replace(/^(นางสาว|นาย|นาง|เด็กชาย|เด็กหญิง)/, ''); }
   else w.hidden = true;
   updSync();
 }
@@ -184,7 +187,7 @@ function pLanding() {
     '<p class="school">ยิมฝึกทำข้อสอบเข้ามหาวิทยาลัย (TCAS)</p>' +
     '<p class="lead">ฝึกทีละข้อ รู้ผลทันที มีคำอธิบายภาษาไทยทุกตัวเลือก และสอบเสมือนจริงจับเวลาเท่าสนามจริง · เริ่มที่วิชาสังคมศึกษา (A-Level) ด้วยข้อสอบจริงที่ ทปอ. เผยแพร่</p>' +
     '<div class="row">' + (student ? '<a class="btn pri big" href="#/subjects">เข้าสู่ Exam Gym →</a><button class="btn ghost" id="logout">ไม่ใช่ฉัน / เปลี่ยนชื่อ</button>' : '<a class="btn pri big" href="#/register">ลงทะเบียนเข้าใช้ →</a>') + '</div>' +
-    (student ? '<p class="muted small" style="margin-top:12px">เข้าใช้ในชื่อ ' + esc(student.preview ? 'ครู/ผู้ตรวจ (โหมดตัวอย่าง)' : student.name + ' · ' + student.room + ' เลขที่ ' + student.no) + '</p>' : '<p class="muted small" style="margin-top:12px">สำหรับนักเรียน ม.6 ที่มีชื่อในรายชื่อของโรงเรียนเท่านั้น</p>') +
+    (student ? '<p class="muted small" style="margin-top:12px">เข้าใช้ในชื่อ ' + esc(student.preview ? 'ครู/ผู้ตรวจ (โหมดตัวอย่าง)' : student.role === 'teacher' ? student.name + ' · ครู' : student.name + ' · ' + student.room + ' เลขที่ ' + student.no) + '</p>' : '<p class="muted small" style="margin-top:12px">สำหรับนักเรียน ม.6 ที่มีชื่อในรายชื่อของโรงเรียนเท่านั้น</p>') +
     '</div><div class="logo-wrap"><img src="assets/piyamit-logo-256.png" alt="ตราโรงเรียนปิยมิตรวิทยา" width="256" height="256"></div></section>' +
     '<div class="feat">' +
     '<div class="card"><b>100 ข้อจริง</b><span>A-Level สังคม ปี 2568 + 2569 จาก ทปอ.</span></div>' +
@@ -193,9 +196,20 @@ function pLanding() {
     '<div class="card"><b>สอบเสมือนจริง</b><span>50 ข้อ 90 นาที เหมือนสนามสอบ</span></div></div>');
   var lo = $('#logout'); if (lo) lo.onclick = function () { logout(); };
 }
-function logout() { sendSession(); student = null; ls('student', null); go('#/register'); }
+function logout() {
+  sendSession();
+  if (student && student.token && BACKEND) { var tk = student.token; flush(true).then(function () { try { fetch(SAVE_URL, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({action: 'logout', token: tk})}); } catch (e) {} }); }
+  student = null; ls('student', null); go('#/register');
+}
 
 function pRegister() {
+  if (!BACKEND) return pRegisterV1();
+  view('<div class="loading">กำลังโหลด…</div>');
+  jsonp({action: 'health'}).then(function (d) { if (d && d.auth === 2) pAuth(d); else pRegisterV1(); })
+    .catch(function () { view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2>เข้าสู่ระบบ</h2><div class="notice err">เชื่อมต่อไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่</div><div class="auth"><button class="btn pri big" id="retry">ลองใหม่</button></div>'); $('#retry').onclick = pRegister; });
+}
+// ---------- เข้าสู่ระบบรุ่น 1 (รายชื่อ) · ใช้เฉพาะเมื่อ backend ยังเป็นรุ่นเก่า ----------
+function pRegisterV1() {
   if (!BACKEND) {
     view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2>ลงทะเบียน</h2>' +
       '<div class="notice">ระบบบันทึกผล (Google Sheet ของครูออม) ยังไม่ได้เชื่อมต่อ · รายชื่อนักเรียนจะแสดงเมื่อเชื่อมต่อแล้ว</div>' +
@@ -243,6 +257,114 @@ function pRegister() {
         else { b.disabled = false; b.textContent = 'ใช่ ฉันเอง เริ่มเลย →'; $('#msg').innerHTML = '<div class="notice err">' + esc((d && d.message) || 'ตรวจรายชื่อไม่ผ่าน') + '</div>'; }
       }).catch(function () { b.disabled = false; b.textContent = 'ลองอีกครั้ง'; $('#msg').innerHTML = '<div class="notice err">เชื่อมต่อไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่</div>'; });
     };
+  }
+  s1();
+}
+
+// ---------- เข้าสู่ระบบรุ่น 2: รหัสห้อง → เลขประจำตัว (หรือเลขประชาชน) → ครั้งแรก: รหัส 4 หลัก + ตั้งรหัสผ่าน · ครั้งต่อไป: รหัสผ่าน ----------
+// ไม่มีรายชื่อนักเรียนในหน้าเว็บ · เลขประชาชน/รหัสผ่านถูกแฮช (SHA-256) ในเครื่องก่อนส่ง และไม่เก็บไว้ในเครื่อง
+function sha256hex(s) {
+  if (!(window.crypto && crypto.subtle && window.TextEncoder)) return Promise.reject(new Error('nocrypto'));
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function (b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); });
+}
+function thaiIdOk(d) { if (!/^\d{13}$/.test(d)) return false; var s = 0; for (var i = 0; i < 12; i++) s += Number(d.charAt(i)) * (13 - i); return (11 - s % 11) % 10 === Number(d.charAt(12)); }
+function apost(o) { return fetch(SAVE_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(o), redirect: 'follow'}).then(function (r) { return r.json(); }); }
+var A = null; // สถานะชั่วคราวในหน่วยความจำเท่านั้น
+function pAuth(meta) {
+  var cs = sessionStorage.getItem('eg6:cs'); if (!cs) { cs = rid('C'); try { sessionStorage.setItem('eg6:cs', cs); } catch (e) {} }
+  A = {cs: cs, mode: (meta && meta.mode) || 'student_id', gate: '', ident: null, show: '', ticket: ''};
+  var NID = function () { return A.mode === 'national_id'; };
+  var NET = 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
+  function scr(back, backTo, title, body, btn) {
+    view('<div class="crumb"><a href="' + (backTo === 'home' ? '#/' : '#/register') + '" id="back">← ' + back + '</a></div><h2 class="ah">' + title + '</h2>' +
+      '<form class="auth" id="af" autocomplete="off" novalidate>' + body + '<p class="aerr" id="msg" role="alert" aria-live="polite"></p><button class="btn pri big" id="go" type="submit">' + btn + '</button></form>');
+    var b = $('#back'); if (backTo !== 'home') b.onclick = function (e) { e.preventDefault(); backTo(); };
+    var f = $('#af input'); if (f) setTimeout(function () { try { f.focus({preventScroll: true}); } catch (e) {} }, 60);
+  }
+  function err(t) { var m = $('#msg'); if (m) m.textContent = t || ''; }
+  function busy(on, t) { var b = $('#go'); if (!b) return; if (on) { b.dataset.t = b.textContent; b.textContent = t || 'กำลังตรวจ…'; } else if (b.dataset.t) b.textContent = b.dataset.t; b.disabled = !!on; }
+  function onSubmit(fn) { $('#af').onsubmit = function (e) { e.preventDefault(); if (!$('#go').disabled) fn(); }; }
+  function digitsOnly(el, max) { el.addEventListener('input', function () { var v = el.value.replace(/\D/g, '').slice(0, max); if (v !== el.value) el.value = v; err(''); }); }
+  function fail(d) { busy(false); if (d && d.code === 'gate') { A.gate = ''; s1(d.message); return true; } err((d && d.message) || NET); return false; }
+  function done(d) {
+    student = {room: d.room, no: d.no, name: d.name, role: d.role, token: d.token, at: Date.now()}; ls('student', student);
+    Q.blocked = ''; A = null; go('#/subjects'); flush(true);
+  }
+  // 1 รหัสห้อง
+  function s1(flash) {
+    scr('หน้าแรก', 'home', 'รหัสห้อง',
+      '<div class="group"><input class="codein" id="rc" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" enterkeyhint="go" aria-label="รหัสห้อง" placeholder="••••••"></div>', 'ต่อไป');
+    var rc = $('#rc'); digitsOnly(rc, 8); err(flash || AUTH_FLASH); AUTH_FLASH = '';
+    onSubmit(function () {
+      var v = rc.value; if (v.length < 4) return err('ใส่รหัสห้องให้ครบ');
+      busy(true); apost({action: 'gate', code: v, cs: A.cs}).then(function (d) {
+        if (d && d.ok && d.pass) { A.gate = d.gate; A.mode = d.mode || A.mode; s2(); } else fail(d);
+      }).catch(function () { fail(); });
+    });
+  }
+  // 2 เลขประจำตัว / เลขประชาชน
+  function s2() {
+    scr('รหัสห้อง', function () { s1(); }, NID() ? 'เลขประชาชน' : 'เลขประจำตัว',
+      '<div class="group"><input class="codein' + (NID() ? ' long' : '') + '" id="idf" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="' + (NID() ? 13 : 5) + '" autocomplete="off" enterkeyhint="next" aria-label="' + (NID() ? 'เลขประจำตัวประชาชน 13 หลัก' : 'เลขประจำตัว 5 หลัก') + '" placeholder="' + (NID() ? '13 หลัก' : '5 หลัก') + '"></div>', 'ต่อไป');
+    var f = $('#idf'); digitsOnly(f, NID() ? 13 : 5);
+    onSubmit(function () {
+      var v = f.value;
+      if (NID()) { if (v.length !== 13) return err('ใส่ให้ครบ 13 หลัก'); if (!thaiIdOk(v)) return err('เลขไม่ถูกต้อง ตรวจอีกครั้ง'); }
+      else if (!/^\d{5}$/.test(v)) return err('ใส่ให้ครบ 5 หลัก');
+      busy(true);
+      (NID() ? sha256hex('eg6id|' + v).then(function (h) { return {t: 'nid', v: h}; }) : Promise.resolve({t: 'sid', v: v})).then(function (id) {
+        A.ident = id; A.show = NID() ? '•••• ' + v.slice(-4) : v; f.value = ''; v = '';
+        return apost({action: 'who', gate: A.gate, cs: A.cs, ident: id});
+      }).then(function (d) {
+        if (d && d.ok && d.state === 'set') s5(); else if (d && d.ok && d.state === 'new') s3(); else fail(d);
+      }).catch(function (e) { fail(e && e.message === 'nocrypto' ? {message: 'เบราว์เซอร์นี้ใช้ไม่ได้ ลองเปิดด้วย Chrome หรือ Safari'} : null); });
+    });
+  }
+  // 3 รหัส 4 หลัก (ครั้งแรก)
+  function s3() {
+    scr(NID() ? 'เลขประชาชน' : 'เลขประจำตัว', function () { s2(); }, 'รหัส 4 หลัก',
+      '<div class="group"><input class="codein pin" id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" enterkeyhint="go" aria-label="รหัส 4 หลัก" placeholder="••••"></div><p class="ahint">ครั้งแรก</p>', 'ต่อไป');
+    var f = $('#pin'); digitsOnly(f, 4);
+    onSubmit(function () {
+      if (f.value.length !== 4) return err('ใส่ให้ครบ 4 หลัก');
+      busy(true); apost({action: 'pin', gate: A.gate, cs: A.cs, ident: A.ident, pin: f.value}).then(function (d) {
+        if (d && d.ok && d.pass) { A.ticket = d.ticket; s4(); } else { f.value = ''; fail(d); }
+      }).catch(function () { fail(); });
+    });
+  }
+  // 4 ตั้งรหัสผ่าน
+  function s4() {
+    scr('รหัส 4 หลัก', function () { s3(); }, 'ตั้งรหัสผ่าน',
+      '<div class="group fields"><label class="cell"><span>รหัสผ่าน</span><input id="p1" type="password" autocomplete="new-password" minlength="6" maxlength="64" placeholder="อย่างน้อย 6 ตัว" enterkeyhint="next"></label>' +
+      '<label class="cell"><span>ยืนยัน</span><input id="p2" type="password" autocomplete="new-password" maxlength="64" placeholder="พิมพ์อีกครั้ง" enterkeyhint="go"></label></div>' +
+      '<p class="consent">บันทึก = ยินยอมให้ส่งผลฝึกถึงครูออม <button type="button" class="xi" data-about="privacy" aria-label="ความเป็นส่วนตัว">ⓘ</button></p>', 'บันทึก');
+    var p1 = $('#p1'), p2 = $('#p2'); [p1, p2].forEach(function (x) { x.addEventListener('input', function () { err(''); }); });
+    onSubmit(function () {
+      var a = p1.value, b = p2.value;
+      if (a.length < 6) return err('รหัสผ่านอย่างน้อย 6 ตัว');
+      if (/^(\d)\1+$/.test(a) || a === '123456' || a === '12345678' || (A.ident.t === 'sid' && a.indexOf(A.ident.v) >= 0)) return err('รหัสผ่านเดาง่ายเกินไป');
+      if (a !== b) return err('รหัสผ่านไม่ตรงกัน');
+      busy(true, 'กำลังบันทึก…');
+      sha256hex('eg6pw|' + a).then(function (h) { p1.value = p2.value = ''; return apost({action: 'first', gate: A.gate, cs: A.cs, ident: A.ident, ticket: A.ticket, pw: h}); })
+        .then(function (d) { if (d && d.ok && d.found) done(d); else if (d && d.code === 'ticket') { busy(false); s3(); err(d.message); } else fail(d); })
+        .catch(function (e) { fail(e && e.message === 'nocrypto' ? {message: 'เบราว์เซอร์นี้ใช้ไม่ได้ ลองเปิดด้วย Chrome หรือ Safari'} : null); });
+    });
+  }
+  // 5 เข้าสู่ระบบ (ตั้งรหัสผ่านแล้ว)
+  function s5() {
+    scr(NID() ? 'เลขประชาชน' : 'เลขประจำตัว', function () { s2(); }, 'เข้าสู่ระบบ',
+      '<div class="group fields"><div class="cell"><span>' + (NID() ? 'เลขประชาชน' : 'เลขประจำตัว') + '</span><b class="idv">' + esc(A.show) + '</b></div>' +
+      (NID() ? '' : '<input type="text" name="username" autocomplete="username" value="' + esc(A.show) + '" hidden>') +
+      '<label class="cell"><span>รหัสผ่าน</span><input id="pw" type="password" autocomplete="current-password" maxlength="64" enterkeyhint="go" placeholder="รหัสผ่าน"></label></div>' +
+      '<p class="ahint">ลืมรหัสผ่าน แจ้งครูออม</p>', 'เข้าสู่ระบบ');
+    var f = $('#pw'); f.addEventListener('input', function () { err(''); });
+    onSubmit(function () {
+      if (!f.value) return err('ใส่รหัสผ่าน');
+      busy(true);
+      sha256hex('eg6pw|' + f.value).then(function (h) { return apost({action: 'login', gate: A.gate, cs: A.cs, ident: A.ident, pw: h}); })
+        .then(function (d) { if (d && d.ok && d.found) { f.value = ''; done(d); } else { f.value = ''; fail(d); } })
+        .catch(function (e) { fail(e && e.message === 'nocrypto' ? {message: 'เบราว์เซอร์นี้ใช้ไม่ได้ ลองเปิดด้วย Chrome หรือ Safari'} : null); });
+    });
   }
   s1();
 }

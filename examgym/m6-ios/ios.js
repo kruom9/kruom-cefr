@@ -78,7 +78,7 @@ var PAGE = {
     hide($('.kicker', h)); hide($('.lead', h)); hide($('.feat', app));
     setT($('.school', h), 'โรงเรียนปิยมิตรวิทยา');
     var note = $('p.muted.small', h), st = student();
-    if (note) { if (st) setT(note, st.preview ? 'โหมดตัวอย่าง' : st.room + ' · เลขที่ ' + st.no); else hide(note); }
+    if (note) { if (st) setT(note, st.preview ? 'โหมดตัวอย่าง' : st.role === 'teacher' ? 'ครู' : st.room + ' · เลขที่ ' + st.no); else hide(note); }
   },
   register: function () {
     var h2 = $('h2', app); if (h2) setT(h2, {'ลงทะเบียนเข้าใช้': 'ลงทะเบียน', 'ยืนยันตัวตน': 'ยืนยัน'}[h2.textContent] || h2.textContent);
