@@ -71,7 +71,49 @@ function plain(s) { return String(s == null ? '' : s).replace(/\*\*|__/g, ''); }
 var QLINE = /ใด|อย่างไร|หรือไม่/;
 function qLine(it) { var L = String(it.stem).split('\n'); if (SUB === 'soc') return L[0]; var L0 = L.filter(function (l) { return l && !/^〔.*〕$/.test(l); }); if (L0.length) L = L0; for (var i = 0; i < L.length; i++) if (QLINE.test(L[i]) && L[i].length < 160) return L[i]; return L[0]; }
 function isRight(it, c) { if (it.key === 'free') return c != null && c !== ''; return it.key.indexOf(Number(c)) >= 0; }
-function keyText(it) { return it.key === 'free' ? 'ทุกตัวเลือก (ทปอ. ประกาศให้คะแนนทุกคน)' : it.key.map(function (k) { return 'ข้อ ' + k; }).join(' หรือ '); }
+function keyText(it, perm) { return it.key === 'free' ? 'ทุกตัวเลือก (ทปอ. ประกาศให้คะแนนทุกคน)' : it.key.map(function (k) { return dispNo(perm, k); }).sort(function (a, b) { return a - b; }).map(function (k) { return 'ข้อ ' + k; }).join(' หรือ '); }
+// ---------- สลับลำดับตัวเลือกต่อนักเรียน (กันลอกกัน) ----------
+// ลำดับคงที่ต่อ (นักเรียน + ครั้งที่ทำ [PR.shuf / R.shuf] + รหัสข้อ) · รีเฟรชไม่สลับใหม่ · เริ่มชุดใหม่ = สุ่มใหม่
+// คำตอบที่บันทึก/ส่ง (chosen, PR.ans, R.ans) เป็นเลขตัวเลือกตามคลังข้อสอบเดิมเสมอ · สลับแค่ลำดับที่แสดง + เลข 1–5 ตามตำแหน่งที่เห็น
+// ไม่สลับ: ตัวเลือกอ้างตัวเลือกอื่น/ทุกข้อ/ไม่มีข้อใด · ชุด ก ข ค / A-B-C · ตัวเลขเรียงลำดับ · ตัวเลือกเป็นรูป · คำอธิบายอ้าง "ข้อ N/ตัวเลือก N" · ข้อที่คลังตั้ง fixed/noShuffle
+var CH_REF = /ข้อ\s*[0-9๐-๙]|ข้อ\s*[ก-ฮ]\.|ไม่เพียงพอ|สรุปไม่ได้|ไม่สามารถ(สรุป|ระบุ|บอก)|cannot be determined|not enough information|ตัวเลือก|ทุกข้อ|ไม่มีข้อ|ถูกทั้ง|ผิดทั้ง|ทั้ง\s*[ก-ฮA-E]\.?\s*(และ|,)|ข้างต้น|ที่กล่าวมา|ทั้งสองข้อ|^\s*(ถูก|ผิด)?ทั้งหมด\s*$|all of the above|none of the above|all of these|none of these|\bboth\s+[A-E1-5]\b|\b(choices?|options?)\s+[A-E1-5]\b/i;
+var CH_FIG = /^(รูป|ภาพ|กราฟ|แผนภาพ|ตาราง|figure|graph|table|diagram)/i, CH_LABEL = /^[\s()（）.,、ก-ฮa-eA-E0-9๐-๙\-–→>]*$/;
+function chCombo(c) { var x = String(c).replace(/และ|หรือ|เท่านั้น|ข้อ|กับ|and|only|or|ถึง/gi, ' '); return CH_LABEL.test(x) && /[ก-ฮa-eA-E]/.test(x) && x.replace(/\s/g, '').length <= 14; }
+function chNum(c) { var m = String(c).replace(/[,\s]/g, '').match(/^[-−+]?\d*\.?\d+/); return m ? parseFloat(m[0].replace('−', '-')) : null; }
+// ข้อที่ตั้งใจไม่สลับเพิ่มเติม (ตัวเลือกเรียงตามโครงสร้าง แต่กฎอัตโนมัติจับไม่ได้)
+var NOSHUF = {phy: ['68-6']};
+function fixedWhy(it) {
+  if (it._fx != null) return it._fx;
+  var C = it.choices.map(String), n = C.length, meta = (BANK && BANK.meta) || {}, r = '';
+  var re = new RegExp('(ข้อ|ตัวเลือก(ที่)?|choices?|options?|ตอบ)\\s*\\(?[1-' + n + ']\\)?(?![0-9.])', 'i');
+  var labs = C.map(function (c) { var m = c.match(/(?:^|\s)([ก-ง])\.(?=\s|$)/); return m ? m[1] : ''; }).join('');
+  if (it.fixed || it.noShuffle || (meta.noShuffle && meta.noShuffle.indexOf(it.id) >= 0) || (NOSHUF[SUB] || []).indexOf(it.id) >= 0) r = 'flag';
+  else if (labs.indexOf('กขค') === 0) r = 'labelseq';
+  else if (C.some(function (c) { return CH_REF.test(c); })) r = 'ref';
+  else if (C.some(function (c) { c = c.trim(); return !c || CH_FIG.test(c) || /^\(?[ก-ฮA-E]\.?\)?$/.test(c); })) r = 'figure';
+  else if (C.filter(chCombo).length >= Math.ceil(n / 2)) r = 'combo';
+  else {
+    var v = C.map(chNum).filter(function (x) { return x != null; });
+    if (v.length >= Math.max(2, n - 1) && (v.every(function (x, i) { return !i || x >= v[i - 1]; }) || v.every(function (x, i) { return !i || x <= v[i - 1]; }))) r = 'numeric';
+    else if ((it.e || []).concat([it.k || '', it.f || '', (meta.notes && meta.notes[it.id]) || '']).some(function (t) { return re.test(String(t)); })) r = 'expl';
+    else if (re.test(String(it.stem) + ' ' + String(it.after || ''))) r = 'stem';
+  }
+  try { Object.defineProperty(it, '_fx', {value: r, enumerable: false}); } catch (e) {}
+  return r;
+}
+function h32(str) { var h = 2166136261 >>> 0; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; }
+function rng32(a) { return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function whoSeed() { return student ? String(student.sid || student.uid || pkey()) : 'none'; }
+// perm = ลำดับที่แสดง → เลขตัวเลือกเดิม (1-based) · null = ไม่สลับ
+function permOf(it, att) {
+  if (!att || !att.shuf || !it || fixedWhy(it)) return null;
+  var n = it.choices.length, a = [], i, rnd = rng32(h32(String(att.who || whoSeed()) + '|' + att.shuf + '|' + it.id));
+  for (i = 0; i < n; i++) a.push(i + 1);
+  for (i = n - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function dispNo(perm, k) { return perm ? perm.indexOf(Number(k)) + 1 : Number(k); }
+function newShuf() { return {shuf: rid('S'), who: whoSeed()}; }
 function itemLen(it) { return (it.stem || '').length + it.choices.join('').length + (it.table ? JSON.stringify(it.table).length : 0); }
 // ชนิดข้อตามรูปแบบ id ของคลัง: 'real' ข้อสอบจริง (yy-n) · 'sample' ตัวอย่างข้อสอบจากหน้าโครงสร้างข้อสอบของ ทปอ. (s…) · 'orig' ข้อสอบฝึกแต่งใหม่ ไม่ใช่ข้อสอบจริง (p…)
 function kindOf(it) { return /^p/.test(it.id) ? 'orig' : /^s/.test(it.id) ? 'sample' : 'real'; }
@@ -211,20 +253,21 @@ function stemHtml(it) {
 function badge(it) { var k = kindOf(it); return '<span class="tag src">' + (k === 'sample' ? 'ตัวอย่างข้อสอบ ทปอ. ข้อ ' + it.n : k === 'orig' ? 'ข้อสอบฝึก (แต่งใหม่ ไม่ใช่ข้อสอบจริง)' : 'ข้อสอบจริง ทปอ. ปี ' + it.year + ' ข้อ ' + it.n) + '</span>'; }
 function choicesHtml(it, opts) {
   opts = opts || {};
-  return '<div class="choices">' + it.choices.map(function (c, i) {
-    var k = i + 1, cls = 'ch', ex = '';
+  var order = opts.perm || it.choices.map(function (_, i) { return i + 1; });
+  return '<div class="choices">' + order.map(function (k, pos) {
+    var i = k - 1, c = it.choices[i], cls = 'ch', ex = '';
     if (opts.reveal) {
       var r = it.key === 'free' ? false : it.key.indexOf(k) >= 0;
       if (r) cls += ' right'; else if (String(opts.chosen) === String(k)) cls += ' wrong';
       if (it.key === 'free' && String(opts.chosen) === String(k)) cls += ' sel';
       ex = '<span class="ex"><i class="' + (r ? '' : 'x') + '">' + (r ? '✓' : (it.key === 'free' ? '•' : '✗')) + '</i>' + txt(it.e[i]) + '</span>';
     } else if (String(opts.chosen) === String(k)) cls += ' sel';
-    return '<button class="' + cls + '" data-k="' + k + '"' + (opts.reveal ? ' disabled' : '') + '><span class="k">' + k + '</span><span class="t">' + txt(c) + ex + '</span></button>';
+    return '<button class="' + cls + '" data-k="' + k + '"' + (opts.reveal ? ' disabled' : '') + '><span class="k">' + (pos + 1) + '</span><span class="t">' + txt(c) + ex + '</span></button>';
   }).join('') + '</div>';
 }
-function explainHtml(it, chosen, mode) {
+function explainHtml(it, chosen, mode, perm) {
   var ok = chosen !== '' && chosen != null && isRight(it, chosen), h = '';
-  if (mode !== 'review-mock' || true) h += '<div class="verdict ' + (ok ? 'ok' : 'no') + '">' + (chosen === '' || chosen == null ? '— ไม่ได้ตอบข้อนี้ · คำตอบที่ถูก: ' + keyText(it) : ok ? '✓ ถูกต้อง' + (it.key === 'free' ? ' (ข้อนี้ ทปอ. ให้คะแนนทุกคน)' : '') : '✗ ยังไม่ถูก · คำตอบที่ถูก: ' + keyText(it)) + '</div>';
+  if (mode !== 'review-mock' || true) h += '<div class="verdict ' + (ok ? 'ok' : 'no') + '">' + (chosen === '' || chosen == null ? '— ไม่ได้ตอบข้อนี้ · คำตอบที่ถูก: ' + keyText(it, perm) : ok ? '✓ ถูกต้อง' + (it.key === 'free' ? ' (ข้อนี้ ทปอ. ให้คะแนนทุกคน)' : '') : '✗ ยังไม่ถูก · คำตอบที่ถูก: ' + keyText(it, perm)) + '</div>';
   h += '<div class="keybox"><b>แนวคิดหลัก</b> · ' + txt(it.k) + '</div>';
   if (BANK.meta.notes[it.id]) h += '<div class="flag">หมายเหตุเฉลย: ' + esc(BANK.meta.notes[it.id]) + '</div>';
   if (it.f) h += '<div class="flag">ข้อควรรู้: ' + esc(it.f) + '</div>';
@@ -855,16 +898,16 @@ function pReview() {
 // ---------- practice ----------
 var PR = null;
 function prKey() { return 'pr' + sfx(); }
-function startPractice(o) { PR = {sub: SUB, ids: o.shuffle ? shuffle(o.ids) : o.ids.slice(), title: o.title, back: o.back, mode: o.mode, i: 0, ans: {}, set: o.mode === 'review' ? 'ทบทวน' : 'ฝึก'}; ls(prKey(), PR); go(base() + '/practice'); }
+function startPractice(o) { PR = {sub: SUB, ids: o.shuffle ? shuffle(o.ids) : o.ids.slice(), title: o.title, back: o.back, mode: o.mode, i: 0, ans: {}, set: o.mode === 'review' ? 'ทบทวน' : 'ฝึก'}; var sh = newShuf(); PR.shuf = sh.shuf; PR.who = sh.who; ls(prKey(), PR); go(base() + '/practice'); }
 function pPractice() {
   if (!PR || (PR.sub || 'soc') !== SUB) PR = ls(prKey());
   if (!PR || !PR.ids.length || !PR.ids.every(function (id) { return ITEMS[id]; })) return go(base());
-  var it = ITEMS[PR.ids[PR.i]], a = PR.ans[it.id], n = PR.ids.length, done = Object.keys(PR.ans).length;
+  var it = ITEMS[PR.ids[PR.i]], a = PR.ans[it.id], n = PR.ids.length, done = Object.keys(PR.ans).length, perm = permOf(it, PR);
   ACT.itemSec = 0;
   view('<div class="q-wrap"><div class="crumb"><a href="' + PR.back + '">← ออก</a></div><div class="q-top"><div class="q-meta"><b>' + esc(PR.title) + '</b> · ข้อ ' + (PR.i + 1) + '/' + n + '</div><div class="q-meta">ตอบแล้ว ' + done + ' · ถูก ' + Object.keys(PR.ans).filter(function (k) { return PR.ans[k].ok; }).length + '</div></div>' +
     '<div class="prog"><i style="width:' + pct(PR.i + (a ? 1 : 0), n) + '%"></i></div>' +
     '<article class="q-card"><div class="q-no">' + badge(it) + '<span class="tag">สาระ ' + it.sara + ' ' + SHORT[it.sara] + ' · ' + it.topic + ' ' + esc(TOPIC[it.topic].name) + '</span></div>' +
-    stemHtml(it) + choicesHtml(it, a ? {reveal: true, chosen: a.c} : {}) + '<div id="exp">' + (a ? explainHtml(it, a.c) : '<p class="muted small" style="margin:14px 0 0">แตะตัวเลือกที่คิดว่าถูกที่สุด แล้วดูคำอธิบายทุกตัวเลือก</p>') + '</div></article>' +
+    stemHtml(it) + choicesHtml(it, a ? {reveal: true, chosen: a.c, perm: perm} : {perm: perm}) + '<div id="exp">' + (a ? explainHtml(it, a.c, '', perm) : '<p class="muted small" style="margin:14px 0 0">แตะตัวเลือกที่คิดว่าถูกที่สุด แล้วดูคำอธิบายทุกตัวเลือก</p>') + '</div></article>' +
     '<div class="q-nav"><button class="btn" id="prev"' + (PR.i ? '' : ' disabled') + '>← ข้อก่อนหน้า</button>' + (PR.i < n - 1 ? '<button class="btn pri" id="next">' + (a ? 'ข้อถัดไป →' : 'ข้าม →') + '</button>' : '<button class="btn pri" id="fin">จบชุดนี้ ✓</button>') + '</div></div>');
   if (!a) Array.prototype.forEach.call(document.querySelectorAll('.ch'), function (b) {
     b.onclick = function () {
@@ -912,7 +955,7 @@ function pMockHome() {
       var m = BANK.mocks.filter(function (x) { return x.id === b.dataset.m; })[0];
       confirmBox('<h3>เริ่ม ' + esc(m.name) + '?</h3><p>' + mockLen(m) + ' ข้อ · ' + m.min + ' นาที · เวลาเริ่มนับทันทีที่กดเริ่ม' + (run && !run.done ? '<br><b class="pink">ชุดที่ค้างไว้จะถูกยกเลิก</b>' : '') + '</p>', 'เริ่มจับเวลา', function () {
         var ids = mockIds(m);
-        ls(mkey(), {id: rid('M'), sub: SUB, set: m.id, name: m.name, ids: ids, ans: {}, flag: {}, sec: {}, i: 0, start: Date.now(), end: Date.now() + m.min * 60000, min: m.min});
+        var sh = newShuf(); ls(mkey(), {id: rid('M'), sub: SUB, set: m.id, name: m.name, ids: ids, ans: {}, flag: {}, sec: {}, i: 0, start: Date.now(), end: Date.now() + m.min * 60000, min: m.min, shuf: sh.shuf, who: sh.who});
         go(base() + '/mock/run');
       });
     };
@@ -932,7 +975,7 @@ function pMockRun() {
   function pal() { return '<div class="pal">' + R.ids.map(function (id, i) { return (mono && (i === 0 || sar[i] !== sar[i - 1]) ? '<div class="sh">สาระ ' + sar[i] + ' ' + SHORT[sar[i]] + '</div>' : '') + '<button data-i="' + i + '" class="' + (R.ans[id] ? 'ans ' : '') + (R.flag[id] ? 'flg ' : '') + (i === R.i ? 'cur' : '') + '">' + (i + 1) + '</button>'; }).join('') + '</div><div class="legend"><span><i style="background:rgba(255,79,163,.4)"></i>ตอบแล้ว</span><span><i style="background:var(--warn);border-radius:50%"></i>ปักธง</span></div>'; }
   view('<div class="mock-bar"><div><b>' + esc(R.name) + '</b><div class="small muted">ตอบแล้ว ' + answered + '/' + n + '</div></div><div class="timer" id="timer">' + mmss((R.end - Date.now()) / 1000) + '</div><div class="row"><button class="btn only-m" id="palBtn">ข้อทั้งหมด</button><button class="btn pri" id="submit">ส่งคำตอบ</button></div></div>' +
     '<div class="mock-layout"><div><article class="q-card"><div class="q-no"><span class="tag">ข้อ ' + (R.i + 1) + '/' + n + '</span><span class="tag">สาระ ' + it.sara + ' ' + SHORT[it.sara] + '</span>' + badge(it) + '</div>' +
-    stemHtml(it) + choicesHtml(it, {chosen: R.ans[it.id]}) + '</article>' +
+    stemHtml(it) + choicesHtml(it, {chosen: R.ans[it.id], perm: permOf(it, R)}) + '</article>' +
     '<div class="q-nav"><button class="btn" id="prev"' + (R.i ? '' : ' disabled') + '>← ก่อนหน้า</button><button class="btn flagbtn' + (R.flag[it.id] ? ' on' : '') + '" id="flag">⚑ ' + (R.flag[it.id] ? 'เลิกปักธง' : 'ปักธงไว้ดูอีกที') + '</button><button class="btn pri" id="next"' + (R.i < n - 1 ? '' : ' disabled') + '>ถัดไป →</button></div></div>' +
     '<aside class="card palette only-d" id="palette">' + pal() + '</aside></div>');
   function save() { R.sec[it.id] = (R.sec[it.id] || 0) + ACT.itemSec; ACT.itemSec = 0; ls(K, R); }
@@ -961,7 +1004,7 @@ function submitMock(R, timeout) {
     var ok = record(it, c == null ? '' : c, 'mock', R.set, R.sec[id] || 0);
     b[1]++; if (ok) { b[0]++; score++; }
   });
-  var res = {id: R.id, set: R.set, name: R.name, score: score, total: R.ids.length, bySara: by, usedSec: Math.round((now - R.start) / 1000), timeout: !!timeout, at: Date.now(), ids: R.ids, ans: R.ans, answered: Object.keys(R.ans).length};
+  var res = {id: R.id, set: R.set, name: R.name, score: score, total: R.ids.length, bySara: by, usedSec: Math.round((now - R.start) / 1000), timeout: !!timeout, at: Date.now(), ids: R.ids, ans: R.ans, answered: Object.keys(R.ans).length, shuf: R.shuf, who: R.who};
   var p = prog(); p.mocks.push(res); if (p.mocks.length > 30) p.mocks = p.mocks.slice(-30); saveProg(p);
   Q.add({type: 'mock', eid: R.id, subject: subjCode(SUB), set: R.set, score: score, total: R.ids.length, bySara: by, usedSec: res.usedSec, timeout: !!timeout, answered: res.answered});
   R.done = true; ls(K, R); flush(true);
@@ -984,7 +1027,7 @@ function pMockReview(id, i) {
   i = Math.max(0, Math.min(r.ids.length - 1, Number(i) || 0));
   var it = ITEMS[r.ids[i]], c = r.ans[it.id];
   view('<div class="q-wrap"><div class="crumb"><a href="' + base() + '/mock/result/' + id + '">← กลับไปหน้าผลสอบ</a></div><div class="q-top"><div class="q-meta"><b>เฉลย ' + esc(r.name) + '</b> · ข้อ ' + (i + 1) + '/' + r.ids.length + '</div></div>' +
-    '<article class="q-card"><div class="q-no">' + badge(it) + '<span class="tag">สาระ ' + it.sara + ' · ' + it.topic + ' ' + esc(TOPIC[it.topic].name) + '</span></div>' + stemHtml(it) + choicesHtml(it, {reveal: true, chosen: c}) + explainHtml(it, c == null ? '' : c) + '</article>' +
+    '<article class="q-card"><div class="q-no">' + badge(it) + '<span class="tag">สาระ ' + it.sara + ' · ' + it.topic + ' ' + esc(TOPIC[it.topic].name) + '</span></div>' + stemHtml(it) + choicesHtml(it, {reveal: true, chosen: c, perm: permOf(it, r)}) + explainHtml(it, c == null ? '' : c, 'review-mock', permOf(it, r)) + '</article>' +
     '<div class="q-nav"><button class="btn" id="prev"' + (i ? '' : ' disabled') + '>← ข้อก่อนหน้า</button><button class="btn pri" id="next"' + (i < r.ids.length - 1 ? '' : ' disabled') + '>ข้อถัดไป →</button></div></div>');
   $('#prev').onclick = function () { go(base() + '/mock/review/' + id + '/' + (i - 1)); };
   $('#next').onclick = function () { go(base() + '/mock/review/' + id + '/' + (i + 1)); };
