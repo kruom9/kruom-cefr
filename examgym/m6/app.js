@@ -1,0 +1,470 @@
+/* Exam Gym ม.6 · โรงเรียนปิยมิตรวิทยา ฝ่ายมัธยม · ครูออม · หน้าเว็บ (ไม่มีรายชื่อนักเรียนในไฟล์นี้ · รายชื่อดึงจาก Apps Script) */
+(function () {
+'use strict';
+var CFG = window.EXAMGYM_CONFIG || {}, BANK = window.SOC_BANK;
+var SAVE_URL = String(CFG.SAVE_URL || '').trim();
+var BACKEND = /^https?:\/\//.test(SAVE_URL) && !/PASTE/i.test(SAVE_URL);
+var VERSION = CFG.VERSION || 'examgym-m6';
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var app = $('#app');
+var ITEMS = {}; BANK.items.forEach(function (it) { ITEMS[it.id] = it; });
+var SARA = {}; BANK.saras.forEach(function (s) { SARA[s.id] = s; });
+var TOPIC = {}; BANK.saras.forEach(function (s) { s.topics.forEach(function (t) { TOPIC[t.id] = t; }); });
+var SHORT = {1: 'ศาสนา', 2: 'หน้าที่พลเมือง', 3: 'เศรษฐศาสตร์', 4: 'ประวัติศาสตร์', 5: 'ภูมิศาสตร์'};
+var SUBJECTS = [
+  {id: 'soc', name: 'สังคมศึกษา', exam: 'A-Level 70 สังคมศึกษา', live: true},
+  {id: 'thai', name: 'ภาษาไทย', exam: 'A-Level 81 ภาษาไทย'},
+  {id: 'eng', name: 'ภาษาอังกฤษ', exam: 'A-Level 82 ภาษาอังกฤษ'},
+  {id: 'phy', name: 'ฟิสิกส์', exam: 'A-Level 64 ฟิสิกส์'},
+  {id: 'chem', name: 'เคมี', exam: 'A-Level 65 เคมี'},
+  {id: 'bio', name: 'ชีววิทยา', exam: 'A-Level 66 ชีววิทยา'},
+  {id: 'sci', name: 'วิทยาศาสตร์ประยุกต์', exam: 'A-Level 63 วิทยาศาสตร์ประยุกต์'},
+  {id: 'tgat1', name: 'TGAT1 การสื่อสารภาษาอังกฤษ', exam: 'TGAT1'},
+  {id: 'tgat2', name: 'TGAT2 การคิดอย่างมีเหตุผล', exam: 'TGAT2'},
+  {id: 'tgat3', name: 'TGAT3 สมรรถนะการทำงาน', exam: 'TGAT3'}
+];
+
+// ---------- utils ----------
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); }
+function ls(k, v) { try { if (arguments.length > 1) { localStorage.setItem('eg6:' + k, JSON.stringify(v)); return v; } var x = localStorage.getItem('eg6:' + k); return x ? JSON.parse(x) : null; } catch (e) { return null; } }
+function rid(p) { return (p || '') + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function pct(c, n) { return n ? Math.round(c / n * 100) : 0; }
+function mmss(s) { s = Math.max(0, Math.round(s)); var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); }
+function mins(s) { s = Math.round((s || 0) / 60); return s < 60 ? s + ' นาที' : Math.floor(s / 60) + ' ชม. ' + (s % 60) + ' นาที'; }
+function thDate(t) { var d = new Date(t); return d.toLocaleString('th-TH', {timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) + ' น.'; }
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+var EMPH = /(ไม่ถูกต้อง|ไม่ถูก|ไม่ใช่|ไม่สามารถ|ไม่อาจ|ไม่สะท้อน|ไม่สัมพันธ์|ไม่สอดคล้อง|ไม่ได้|ไม่เป็น|ไม่ถือ|ยกเว้น|น้อยที่สุด|มากที่สุด|เหมาะสมที่สุด|ชัดเจนที่สุด|ถูกต้องที่สุด|แตกต่างจากข้ออื่น)/g;
+function emph(s) { return esc(s).replace(EMPH, '<span class="em">$1</span>'); }
+function isRight(it, c) { if (it.key === 'free') return c != null && c !== ''; return it.key.indexOf(Number(c)) >= 0; }
+function keyText(it) { return it.key === 'free' ? 'ทุกตัวเลือก (ทปอ. ประกาศให้คะแนนทุกคน)' : it.key.map(function (k) { return 'ข้อ ' + k; }).join(' หรือ '); }
+function itemLen(it) { return (it.stem || '').length + it.choices.join('').length + (it.table ? JSON.stringify(it.table).length : 0); }
+function cite(it) { return 'ข้อสอบ A-Level 70 สังคมศึกษา ปีการศึกษา ' + it.year + ' ข้อ ' + it.n + ' · ทปอ. เผยแพร่ที่ mytcas.com (สอบ ' + BANK.meta.dates[it.year] + ') · เฉลยตามที่ ทปอ. เผยแพร่ · คำอธิบายจัดทำเพิ่มเพื่อการฝึก (ร่าง รอครูตรวจ)'; }
+function itemsOf(f) { return BANK.items.filter(f).sort(function (a, b) { return a.sara - b.sara || b.year - a.year || a.n - b.n; }); }
+
+// ---------- student & progress ----------
+var student = ls('student'); // {room,no,name,preview,code,sid}
+function pkey() { return student ? (student.preview ? 'preview' : student.room + '#' + student.no) : 'none'; }
+function prog() { var p = ls('p:' + pkey()) || {}; p.items = p.items || {}; p.mocks = p.mocks || []; p.active = p.active || 0; return p; }
+function saveProg(p) { ls('p:' + pkey(), p); }
+
+// ---------- JSONP / sync ----------
+function jsonp(params, timeout) {
+  return new Promise(function (res, rej) {
+    var cb = '__eg' + Math.random().toString(36).slice(2), s = document.createElement('script'), done = false;
+    var q = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+    var t = setTimeout(function () { fin(); rej(new Error('timeout')); }, timeout || 15000);
+    function fin() { done = true; clearTimeout(t); try { delete window[cb]; } catch (e) { window[cb] = undefined; } s.remove(); }
+    window[cb] = function (d) { if (done) return; fin(); res(d); };
+    s.onerror = function () { if (done) return; fin(); rej(new Error('network')); };
+    s.src = SAVE_URL + (SAVE_URL.indexOf('?') < 0 ? '?' : '&') + q + '&callback=' + cb + '&_=' + Date.now();
+    document.head.appendChild(s);
+  });
+}
+var Q = {
+  list: function () { return ls('q') || []; },
+  put: function (a) { ls('q', a); updSync(); },
+  add: function (ev) { if (!student || student.preview || !BACKEND) return; ev.stu = pkey(); ev.ts = ev.ts || Date.now(); var a = Q.list(); if (ev.type === 'session') a = a.filter(function (x) { return !(x.type === 'session' && x.sessionId === ev.sessionId); }); a.push(ev); if (a.length > 3000) a = a.slice(-3000); Q.put(a); },
+  busy: false, fails: 0, last: 0, state: 'ok', blocked: ''
+};
+function updSync() {
+  var el = $('#sync'); if (!el) return;
+  if (!student) { el.hidden = true; return; }
+  el.hidden = false;
+  if (student.preview || !BACKEND) { el.className = 'sync prev'; el.textContent = 'โหมดตัวอย่าง · ไม่บันทึกผล'; return; }
+  var n = Q.list().filter(function (x) { return x.stu === pkey() && x.type !== 'session'; }).length;
+  if (Q.blocked) { el.className = 'sync off'; el.textContent = 'บันทึกไม่ได้ · ติดต่อครูออม'; }
+  else if (!navigator.onLine || Q.state === 'off') { el.className = 'sync off'; el.textContent = 'ออฟไลน์ · เก็บไว้ในเครื่อง ' + n + ' รายการ'; }
+  else if (n) { el.className = 'sync wait'; el.textContent = 'กำลังส่ง ' + n + ' รายการ…'; }
+  else { el.className = 'sync ok'; el.textContent = 'บันทึกแล้ว ✓'; }
+}
+function stuPayload() { return {room: student.room, name: student.name, no: student.no, sid: student.sid || '', code: student.code || ''}; }
+function flush(force) {
+  if (!BACKEND || !student || student.preview || Q.busy || Q.blocked) return Promise.resolve();
+  var mine = Q.list().filter(function (x) { return x.stu === pkey(); });
+  if (!mine.length) { Q.state = 'ok'; updSync(); return Promise.resolve(); }
+  if (!force && Date.now() - Q.last < Math.min(120000, 4000 * Math.pow(2, Q.fails))) return Promise.resolve();
+  Q.busy = true; Q.last = Date.now();
+  var batch = mine.slice(0, 40), ids = batch.map(function (x) { return x.eid; });
+  var body = JSON.stringify({action: 'events', api: 1, version: VERSION, student: stuPayload(), events: batch.map(function (x) { var y = {}; for (var k in x) if (k !== 'stu') y[k] = x[k]; return y; })});
+  function drop(list) { var set = {}; list.forEach(function (e) { set[e] = 1; }); Q.put(Q.list().filter(function (x) { return !(x.stu === pkey() && set[x.eid]); })); }
+  return fetch(SAVE_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: body, redirect: 'follow'})
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d && d.ok) { drop((d.saved || []).concat(d.dup || [], d.bad || [])); Q.fails = 0; Q.state = 'ok'; }
+      else if (d && d.error === 'not on roster') { Q.blocked = d.message || 'ไม่พบชื่อในรายชื่อ'; }
+      else throw new Error('bad reply');
+    })
+    .catch(function () {
+      // อ่านคำตอบไม่ได้ (เครือข่าย/ข้อจำกัดเบราว์เซอร์) → ส่งแบบ no-cors แล้วตรวจกับเซิร์ฟเวอร์ว่าบันทึกแล้วหรือยัง
+      if (!navigator.onLine) { Q.fails++; Q.state = 'off'; return; }
+      return fetch(SAVE_URL, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: body})
+        .then(function () { return new Promise(function (r) { setTimeout(r, 2500); }); })
+        .then(function () { return jsonp({action: 'ack', eids: ids.filter(function (e, i) { return batch[i].type !== 'session'; }).join(',')}); })
+        .then(function (d) { var have = (d && d.have) || []; drop(have.concat(batch.filter(function (x) { return x.type === 'session'; }).map(function (x) { return x.eid; }))); Q.fails = have.length ? 0 : Q.fails + 1; Q.state = 'ok'; })
+        .catch(function () { Q.fails++; Q.state = 'off'; });
+    })
+    .then(function () { Q.busy = false; updSync(); if (Q.list().some(function (x) { return x.stu === pkey(); }) && Q.fails === 0 && !Q.blocked) setTimeout(function () { flush(true); }, 300); });
+}
+window.addEventListener('online', function () { Q.fails = 0; flush(true); });
+window.addEventListener('offline', updSync);
+setInterval(function () { flush(false); }, 15000);
+
+// ---------- active time (หยุดนับเมื่อซ่อนแท็บ หรือไม่ใช้งานเกิน 3 นาที) ----------
+var ACT = {sessionId: rid('S'), start: Date.now(), sec: 0, items: 0, lastInput: Date.now(), lastSent: 0, itemSec: 0};
+['pointerdown', 'keydown', 'scroll', 'touchstart', 'mousemove'].forEach(function (e) { window.addEventListener(e, function () { ACT.lastInput = Date.now(); }, {passive: true}); });
+function activeNow() { return document.visibilityState === 'visible' && Date.now() - ACT.lastInput < 180000; }
+setInterval(function () {
+  if (!student) return;
+  if (activeNow()) { ACT.sec++; ACT.itemSec++; if (ACT.sec % 30 === 0) { var p = prog(); p.active += 30; saveProg(p); } }
+  if (ACT.sec - ACT.lastSent >= 60) sendSession();
+  if (window.__tick) window.__tick();
+}, 1000);
+function sendSession() {
+  if (!student || ACT.sec === ACT.lastSent) return;
+  ACT.lastSent = ACT.sec;
+  Q.add({type: 'session', eid: ACT.sessionId + '-' + ACT.sec, sessionId: ACT.sessionId, activeSec: ACT.sec, items: ACT.items, startedAt: ACT.start, ua: (/Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'มือถือ' : 'คอมพิวเตอร์') + ' ' + window.innerWidth + 'px', version: VERSION});
+}
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { sendSession(); flush(true); } else { ACT.lastInput = Date.now(); flush(true); } });
+
+function record(it, chosen, mode, set, sec) {
+  var p = prog(), x = p.items[it.id] = p.items[it.id] || {att: 0};
+  var ok = chosen !== '' && chosen != null && isRight(it, chosen);
+  x.att++; if (x.att === 1) x.first = ok; x.last = chosen; x.ok = ok; x.at = Date.now(); if (!ok && chosen !== '') x.wrong = (x.wrong || 0) + 1;
+  saveProg(p); ACT.items++;
+  Q.add({type: 'answer', eid: rid('A'), sessionId: ACT.sessionId, subject: 'soc', mode: mode, set: set || '', itemId: it.id, sara: it.sara, topic: it.topic, attempt: x.att, chosen: chosen === '' || chosen == null ? '' : Number(chosen), correct: ok, sec: Math.round(sec * 10) / 10, len: itemLen(it)});
+  return ok;
+}
+
+// ---------- render helpers ----------
+function setWho() {
+  var w = $('#who');
+  if (student) { w.hidden = false; w.textContent = student.preview ? 'ครู/ผู้ตรวจ (ตัวอย่าง)' : student.room + ' เลขที่ ' + student.no + ' · ' + student.name.replace(/^(นางสาว|นาย|นาง|เด็กชาย|เด็กหญิง)/, ''); }
+  else w.hidden = true;
+  updSync();
+}
+function view(html) { window.__tick = null; app.innerHTML = html; window.scrollTo(0, 0); setWho(); }
+function go(h) { if (location.hash === h) route(); else location.hash = h; }
+function stemHtml(it) {
+  var h = '', lines = String(it.stem).split('\n');
+  lines.forEach(function (l) { if (/^“|^"/.test(l) && /”$|"$|”\s*$/.test(l)) h += '<blockquote>' + emph(l) + '</blockquote>'; else h += '<p>' + emph(l) + '</p>'; });
+  if (it.img) h += '<img class="qimg" src="img/' + esc(it.img) + '" alt="ภาพประกอบโจทย์ (จากข้อสอบต้นฉบับ)">';
+  if (it.table) { h += '<table class="qtable"><thead><tr>' + it.table[0].map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' + it.table.slice(1).map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>'; }
+  if (it.after) h += '<p>' + emph(it.after) + '</p>';
+  return '<div class="stem">' + h + '</div>';
+}
+function badge(it) { return '<span class="tag src">ข้อสอบจริง ทปอ. ปี ' + it.year + ' ข้อ ' + it.n + '</span>'; }
+function choicesHtml(it, opts) {
+  opts = opts || {};
+  return '<div class="choices">' + it.choices.map(function (c, i) {
+    var k = i + 1, cls = 'ch', ex = '';
+    if (opts.reveal) {
+      var r = it.key === 'free' ? false : it.key.indexOf(k) >= 0;
+      if (r) cls += ' right'; else if (String(opts.chosen) === String(k)) cls += ' wrong';
+      if (it.key === 'free' && String(opts.chosen) === String(k)) cls += ' sel';
+      ex = '<span class="ex"><i class="' + (r ? '' : 'x') + '">' + (r ? '✓' : (it.key === 'free' ? '•' : '✗')) + '</i>' + esc(it.e[i]) + '</span>';
+    } else if (String(opts.chosen) === String(k)) cls += ' sel';
+    return '<button class="' + cls + '" data-k="' + k + '"' + (opts.reveal ? ' disabled' : '') + '><span class="k">' + k + '</span><span class="t">' + esc(c) + ex + '</span></button>';
+  }).join('') + '</div>';
+}
+function explainHtml(it, chosen, mode) {
+  var ok = chosen !== '' && chosen != null && isRight(it, chosen), h = '';
+  if (mode !== 'review-mock' || true) h += '<div class="verdict ' + (ok ? 'ok' : 'no') + '">' + (chosen === '' || chosen == null ? '— ไม่ได้ตอบข้อนี้ · คำตอบที่ถูก: ' + keyText(it) : ok ? '✓ ถูกต้อง' + (it.key === 'free' ? ' (ข้อนี้ ทปอ. ให้คะแนนทุกคน)' : '') : '✗ ยังไม่ถูก · คำตอบที่ถูก: ' + keyText(it)) + '</div>';
+  h += '<div class="keybox"><b>แนวคิดหลัก</b> · ' + esc(it.k) + '</div>';
+  if (BANK.meta.notes[it.id]) h += '<div class="flag">หมายเหตุเฉลย: ' + esc(BANK.meta.notes[it.id]) + '</div>';
+  if (it.f) h += '<div class="flag">ข้อควรรู้: ' + esc(it.f) + '</div>';
+  h += '<div class="cite">ที่มา: ' + esc(cite(it)) + '</div>';
+  return h;
+}
+
+// ---------- pages ----------
+function pLanding() {
+  view('<section class="hero"><div>' +
+    '<span class="kicker">ระบบของโรงเรียนปิยมิตรวิทยา ฝ่ายมัธยม</span>' +
+    '<h1>Exam Gym <span>ม.6</span></h1>' +
+    '<p class="school">ยิมฝึกทำข้อสอบเข้ามหาวิทยาลัย (TCAS)</p>' +
+    '<p class="lead">ฝึกทีละข้อ รู้ผลทันที มีคำอธิบายภาษาไทยทุกตัวเลือก และสอบเสมือนจริงจับเวลาเท่าสนามจริง · เริ่มที่วิชาสังคมศึกษา (A-Level) ด้วยข้อสอบจริงที่ ทปอ. เผยแพร่</p>' +
+    '<div class="row">' + (student ? '<a class="btn pri big" href="#/subjects">เข้าสู่ Exam Gym →</a><button class="btn ghost" id="logout">ไม่ใช่ฉัน / เปลี่ยนชื่อ</button>' : '<a class="btn pri big" href="#/register">ลงทะเบียนเข้าใช้ →</a>') + '</div>' +
+    (student ? '<p class="muted small" style="margin-top:12px">เข้าใช้ในชื่อ ' + esc(student.preview ? 'ครู/ผู้ตรวจ (โหมดตัวอย่าง)' : student.name + ' · ' + student.room + ' เลขที่ ' + student.no) + '</p>' : '<p class="muted small" style="margin-top:12px">สำหรับนักเรียน ม.6 ที่มีชื่อในรายชื่อของโรงเรียนเท่านั้น</p>') +
+    '</div><div class="logo-wrap"><img src="assets/piyamit-logo-256.png" alt="ตราโรงเรียนปิยมิตรวิทยา" width="256" height="256"></div></section>' +
+    '<div class="feat">' +
+    '<div class="card"><b>100 ข้อจริง</b><span>A-Level สังคม ปี 2568 + 2569 จาก ทปอ.</span></div>' +
+    '<div class="card"><b>5 สาระ 17 หัวข้อ</b><span>เลือกฝึกเฉพาะเรื่องที่อยากเก่ง</span></div>' +
+    '<div class="card"><b>อธิบายทุกตัวเลือก</b><span>รู้ว่าทำไมถูก ทำไมผิด</span></div>' +
+    '<div class="card"><b>สอบเสมือนจริง</b><span>50 ข้อ 90 นาที เหมือนสนามสอบ</span></div></div>');
+  var lo = $('#logout'); if (lo) lo.onclick = function () { logout(); };
+}
+function logout() { sendSession(); student = null; ls('student', null); go('#/register'); }
+
+function pRegister() {
+  if (!BACKEND) {
+    view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2>ลงทะเบียน</h2>' +
+      '<div class="notice">ระบบบันทึกผล (Google Sheet ของครูออม) ยังไม่ได้เชื่อมต่อ · รายชื่อนักเรียนจะแสดงเมื่อเชื่อมต่อแล้ว</div>' +
+      (CFG.PREVIEW_WHEN_NO_BACKEND ? '<div class="card" style="margin-top:16px"><h3>โหมดตัวอย่าง (สำหรับครูตรวจระบบ)</h3><p class="muted">ใช้งานได้ทุกหน้า แต่ไม่บันทึกผลไปที่ Google Sheet</p><button class="btn pri big" id="pv">เข้าดูแบบตัวอย่าง →</button></div>' : ''));
+    var pv = $('#pv'); if (pv) pv.onclick = function () { student = {preview: true, name: 'ผู้ตรวจ', room: '-', no: 0}; ls('student', student); go('#/subjects'); };
+    return;
+  }
+  var st = {room: '', code: '', names: null, meta: null};
+  function step(n) { return '<div class="steps"><span class="' + (n === 1 ? 'on' : '') + '">1 เลือกห้อง</span><span class="' + (n === 2 ? 'on' : '') + '">2 เลือกชื่อ</span><span class="' + (n === 3 ? 'on' : '') + '">3 ยืนยัน</span></div>'; }
+  function s1() {
+    view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2>ลงทะเบียนเข้าใช้</h2>' + step(1) + '<div class="card"><h3>เลือกห้องของฉัน</h3><div id="rooms" class="rooms"><div class="muted">กำลังโหลดรายชื่อห้อง…</div></div><div id="codeBox"></div></div>');
+    jsonp({action: 'rooms'}).then(function (d) {
+      st.meta = d;
+      if (!d || !d.ok || !d.rooms || !d.rooms.length) throw new Error('empty');
+      $('#rooms').innerHTML = d.rooms.map(function (r) { return '<button class="btn" data-r="' + esc(r.room) + '">' + esc(r.room) + '</button>'; }).join('');
+      if (d.roomCode === 'on') $('#codeBox').innerHTML = '<p style="margin:16px 0 6px">รหัสห้อง (ถามครูออม)</p><input class="txt" id="code" inputmode="numeric" autocomplete="off" placeholder="พิมพ์รหัสห้อง">';
+      Array.prototype.forEach.call(document.querySelectorAll('#rooms button'), function (b) { b.onclick = function () { st.room = b.dataset.r; st.code = $('#code') ? $('#code').value.trim() : ''; s2(); }; });
+    }).catch(function () { $('#rooms').innerHTML = '<div class="notice err">โหลดรายชื่อห้องไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่</div><button class="btn" id="retry" style="margin-top:12px">ลองใหม่</button>'; $('#retry').onclick = s1; });
+  }
+  function s2() {
+    view('<div class="crumb"><a href="#/register" id="back">← เปลี่ยนห้อง</a></div><h2>ห้อง ' + esc(st.room) + '</h2>' + step(2) + '<div class="card"><h3>แตะชื่อของฉัน</h3><input class="txt" id="find" placeholder="ค้นหาชื่อ หรือเลขที่"><div id="names" class="names"><div class="muted">กำลังโหลดรายชื่อ…</div></div></div>');
+    $('#back').onclick = function (e) { e.preventDefault(); s1(); };
+    jsonp({action: 'names', room: st.room, code: st.code}).then(function (d) {
+      if (!d || !d.ok) throw new Error('x');
+      if (!d.found) { $('#names').innerHTML = '<div class="notice err">' + esc(d.message || 'ไม่พบรายชื่อ') + '</div>'; return; }
+      st.names = d.names; st.requireSid = d.requireSid;
+      function draw(f) {
+        var L = d.names.filter(function (x) { return !f || String(x.no) === f || x.name.replace(/\s/g, '').indexOf(f.replace(/\s/g, '')) >= 0; });
+        $('#names').innerHTML = L.map(function (x) { return '<button data-no="' + esc(x.no) + '"><span class="no">' + esc(x.no) + '</span><span>' + esc(x.name) + '</span></button>'; }).join('') || '<div class="muted">ไม่พบชื่อที่ค้นหา</div>';
+        Array.prototype.forEach.call(document.querySelectorAll('#names button'), function (b) { b.onclick = function () { var x = d.names.filter(function (y) { return String(y.no) === b.dataset.no; })[0]; s3(x); }; });
+      }
+      draw(''); $('#find').oninput = function () { draw(this.value.trim()); };
+    }).catch(function () { $('#names').innerHTML = '<div class="notice err">โหลดรายชื่อไม่สำเร็จ ลองใหม่อีกครั้ง</div>'; });
+  }
+  function s3(x) {
+    view('<div class="crumb"><a href="#" id="back">← เลือกชื่อใหม่</a></div><h2>ยืนยันตัวตน</h2>' + step(3) + '<div class="card confirm"><p class="muted">ฉันคือ</p><div class="nm">' + esc(x.name) + '</div><p class="muted">ห้อง ' + esc(st.room) + ' · เลขที่ ' + esc(x.no) + '</p>' +
+      (st.requireSid ? '<p style="margin:14px 0 6px">เลขประจำตัวนักเรียน (5 หลัก)</p><input class="txt" id="sid" inputmode="numeric" maxlength="8" style="max-width:260px;text-align:center">' : '') +
+      '<div class="row" style="justify-content:center;margin-top:20px"><button class="btn pri big" id="yes">ใช่ ฉันเอง เริ่มเลย →</button></div><div id="msg" style="margin-top:14px"></div></div>');
+    $('#back').onclick = function (e) { e.preventDefault(); s2(); };
+    $('#yes').onclick = function () {
+      var b = this; b.disabled = true; b.textContent = 'กำลังตรวจรายชื่อ…';
+      var sid = $('#sid') ? $('#sid').value.trim() : '';
+      jsonp({action: 'login', room: st.room, name: x.name, sid: sid, code: st.code}).then(function (d) {
+        if (d && d.ok && d.found) { student = {room: d.room, no: d.no, name: d.name, code: st.code, sid: sid, at: Date.now()}; ls('student', student); Q.blocked = ''; go('#/subjects'); }
+        else { b.disabled = false; b.textContent = 'ใช่ ฉันเอง เริ่มเลย →'; $('#msg').innerHTML = '<div class="notice err">' + esc((d && d.message) || 'ตรวจรายชื่อไม่ผ่าน') + '</div>'; }
+      }).catch(function () { b.disabled = false; b.textContent = 'ลองอีกครั้ง'; $('#msg').innerHTML = '<div class="notice err">เชื่อมต่อไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่</div>'; });
+    };
+  }
+  s1();
+}
+
+function socStats() {
+  var p = prog(), done = 0, ok = 0, by = {};
+  BANK.items.forEach(function (it) { var x = p.items[it.id]; var b = by[it.sara] = by[it.sara] || {n: 0, done: 0, ok: 0}; b.n++; if (x) { done++; b.done++; if (x.ok) { ok++; b.ok++; } } });
+  var wrong = BANK.items.filter(function (it) { var x = p.items[it.id]; return x && !x.ok; }).length;
+  return {p: p, done: done, ok: ok, by: by, wrong: wrong};
+}
+function pSubjects() {
+  var s = socStats();
+  view('<h2>เลือกวิชา</h2><p class="muted">สวัสดี' + (student.preview ? 'ครับ/ค่ะ (โหมดตัวอย่าง)' : ' ' + esc(student.name)) + ' · เปิดวิชาแรกแล้ว วิชาอื่นทยอยเปิดเร็ว ๆ นี้</p><div class="subj">' +
+    SUBJECTS.map(function (x) {
+      if (x.live) return '<a class="s on" href="#/soc"><span class="tag live">เปิดแล้ว</span><b>' + esc(x.name) + '</b><small>' + esc(x.exam) + ' · 100 ข้อจริง + สอบเสมือนจริง</small><div class="bar" style="margin-top:auto"><i style="width:' + pct(s.done, 100) + '%"></i></div><small>ทำแล้ว ' + s.done + '/100 ข้อ</small></a>';
+      return '<div class="s off" aria-disabled="true"><span class="tag">เร็ว ๆ นี้</span><b>' + esc(x.name) + '</b><small>' + esc(x.exam) + '</small></div>';
+    }).join('') + '</div>');
+}
+function pSoc() {
+  var s = socStats(), p = s.p;
+  var best = p.mocks.length ? p.mocks.reduce(function (m, x) { return x.score / x.total > m.score / m.total ? x : m; }) : null;
+  view('<div class="crumb"><a href="#/subjects">← เลือกวิชา</a></div><h2>สังคมศึกษา · A-Level</h2><p class="muted">ข้อสอบจริง A-Level 70 สังคมศึกษา ปี 2568 และ 2569 ที่ ทปอ. เผยแพร่ · สนามจริง 50 ข้อ 90 นาที (5 สาระ สาระละ 10 ข้อ)</p>' +
+    '<div class="stats"><div class="stat"><b>' + s.done + '<small style="font-size:16px">/100</small></b><span>ข้อที่ทำแล้ว</span></div><div class="stat"><b>' + pct(s.ok, s.done) + '%</b><span>ตอบถูก (ล่าสุด)</span></div><div class="stat"><b>' + Math.round(p.active / 60) + '</b><span>นาทีที่ฝึกในเครื่องนี้</span></div><div class="stat"><b>' + (best ? best.score + '/' + best.total : '–') + '</b><span>สอบเสมือนจริงดีที่สุด</span></div></div>' +
+    '<div class="grid g3"><a class="btn pri big" href="#/soc/mock">⏱ สอบเสมือนจริง</a><a class="btn big" href="#/soc/review">ทบทวนข้อที่ผิด (' + s.wrong + ')</a><a class="btn big" href="#/soc/me">ผลของฉัน</a></div>' +
+    '<div class="section"><h3>ฝึกตามสาระ</h3><span class="muted small">แตะสาระเพื่อเลือกหัวข้อย่อย · ทำทีละข้อ รู้ผลทันที</span></div>' +
+    '<div class="grid g2">' + BANK.saras.map(function (sa) {
+      var b = s.by[sa.id] || {n: 0, done: 0, ok: 0};
+      return '<a class="card sara" href="#/soc/sara/' + sa.id + '" style="text-decoration:none;color:inherit"><div class="hd"><span class="num">' + sa.id + '</span><div><h3>' + esc(sa.name) + '</h3><span class="muted small">' + sa.topics.length + ' หัวข้อย่อย · ' + b.n + ' ข้อ</span></div></div><div class="bar"><i style="width:' + pct(b.done, b.n) + '%"></i></div><span class="small muted">ทำแล้ว ' + b.done + '/' + b.n + ' · ถูก ' + b.ok + ' ข้อ</span></a>';
+    }).join('') + '</div>' +
+    '<p class="small muted" style="margin-top:22px">ที่มา: ' + esc(BANK.meta.source) + ' · ' + esc(BANK.meta.expl) + ' · <a href="#/sources">รายละเอียดแหล่งที่มา</a></p>');
+}
+function pSara(id) {
+  var sa = SARA[id]; if (!sa) return go('#/soc');
+  var p = prog(), all = itemsOf(function (it) { return it.sara === sa.id; });
+  var cnt = function (L) { var d = 0, o = 0; L.forEach(function (it) { var x = p.items[it.id]; if (x) { d++; if (x.ok) o++; } }); return {d: d, o: o}; };
+  var c = cnt(all);
+  view('<div class="crumb"><a href="#/soc">← สังคมศึกษา</a></div><div class="sara"><div class="hd"><span class="num">' + sa.id + '</span><h2 style="margin:0">' + esc(sa.name) + '</h2></div></div>' +
+    '<p class="muted">ข้อสอบจริง ' + all.length + ' ข้อ (ปี 2569 ข้อ ' + ((sa.id - 1) * 10 + 1) + '–' + sa.id * 10 + ' และปี 2568 ข้อ ' + ((sa.id - 1) * 10 + 1) + '–' + sa.id * 10 + ') · ทำแล้ว ' + c.d + ' · ถูก ' + c.o + '</p>' +
+    '<div class="row" style="margin:10px 0 20px"><button class="btn pri big" data-go="sara">ฝึกทั้งสาระ (' + all.length + ' ข้อ)</button><button class="btn big" data-go="rand">สุ่มลำดับ</button></div>' +
+    '<h3>เลือกหัวข้อย่อย</h3><div class="topics">' + sa.topics.map(function (t) {
+      var L = all.filter(function (it) { return it.topic === t.id; }), k = cnt(L);
+      return '<button class="topic" data-t="' + t.id + '"' + (L.length ? '' : ' disabled') + '><span><b class="pink">' + t.id + '</b> ' + esc(t.name) + '</span><small>' + L.length + ' ข้อ · ทำแล้ว ' + k.d + '</small></button>';
+    }).join('') + '</div>');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (b) { b.onclick = function () { startPractice({ids: all.map(function (x) { return x.id; }), title: 'สาระที่ ' + sa.id + ' ' + sa.name, back: '#/soc/sara/' + sa.id, mode: 'practice', shuffle: b.dataset.go === 'rand'}); }; });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (b) { b.onclick = function () { var t = TOPIC[b.dataset.t]; startPractice({ids: all.filter(function (it) { return it.topic === t.id; }).map(function (x) { return x.id; }), title: t.id + ' ' + t.name, back: '#/soc/sara/' + sa.id, mode: 'practice'}); }; });
+}
+function pReview() {
+  var p = prog(), L = itemsOf(function (it) { var x = p.items[it.id]; return x && !x.ok; });
+  if (!L.length) { view('<div class="crumb"><a href="#/soc">← สังคมศึกษา</a></div><h2>ทบทวนข้อที่ผิด</h2><div class="card"><p>ยังไม่มีข้อที่ตอบผิดค้างอยู่ 🎉</p><p class="muted">ข้อที่ตอบผิดในโหมดฝึกหรือสอบเสมือนจริงจะมารวมที่นี่ จนกว่าจะตอบถูก</p><a class="btn pri" href="#/soc">ไปฝึกต่อ</a></div>'); return; }
+  startPractice({ids: L.map(function (x) { return x.id; }), title: 'ทบทวนข้อที่ผิด', back: '#/soc', mode: 'review'});
+}
+
+// ---------- practice ----------
+var PR = null;
+function startPractice(o) { PR = {ids: o.shuffle ? shuffle(o.ids) : o.ids.slice(), title: o.title, back: o.back, mode: o.mode, i: 0, ans: {}, set: o.mode === 'review' ? 'ทบทวน' : 'ฝึก'}; ls('pr', PR); go('#/soc/practice'); }
+function pPractice() {
+  PR = PR || ls('pr'); if (!PR || !PR.ids.length) return go('#/soc');
+  var it = ITEMS[PR.ids[PR.i]], a = PR.ans[it.id], n = PR.ids.length, done = Object.keys(PR.ans).length;
+  ACT.itemSec = 0;
+  view('<div class="q-wrap"><div class="crumb"><a href="' + PR.back + '">← ออก</a></div><div class="q-top"><div class="q-meta"><b>' + esc(PR.title) + '</b> · ข้อ ' + (PR.i + 1) + '/' + n + '</div><div class="q-meta">ตอบแล้ว ' + done + ' · ถูก ' + Object.keys(PR.ans).filter(function (k) { return PR.ans[k].ok; }).length + '</div></div>' +
+    '<div class="prog"><i style="width:' + pct(PR.i + (a ? 1 : 0), n) + '%"></i></div>' +
+    '<article class="q-card"><div class="q-no">' + badge(it) + '<span class="tag">สาระ ' + it.sara + ' ' + SHORT[it.sara] + ' · ' + it.topic + ' ' + esc(TOPIC[it.topic].name) + '</span></div>' +
+    stemHtml(it) + choicesHtml(it, a ? {reveal: true, chosen: a.c} : {}) + '<div id="exp">' + (a ? explainHtml(it, a.c) : '<p class="muted small" style="margin:14px 0 0">แตะตัวเลือกที่คิดว่าถูกที่สุด แล้วดูคำอธิบายทุกตัวเลือก</p>') + '</div></article>' +
+    '<div class="q-nav"><button class="btn" id="prev"' + (PR.i ? '' : ' disabled') + '>← ข้อก่อนหน้า</button>' + (PR.i < n - 1 ? '<button class="btn pri" id="next">' + (a ? 'ข้อถัดไป →' : 'ข้าม →') + '</button>' : '<button class="btn pri" id="fin">จบชุดนี้ ✓</button>') + '</div></div>');
+  if (!a) Array.prototype.forEach.call(document.querySelectorAll('.ch'), function (b) {
+    b.onclick = function () {
+      var c = Number(b.dataset.k), ok = record(it, c, PR.mode, PR.set, ACT.itemSec);
+      PR.ans[it.id] = {c: c, ok: ok}; ls('pr', PR); pPractice();
+      setTimeout(function () { var e = $('#exp'); if (e && window.innerWidth < 900) e.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 50);
+      flush(true);
+    };
+  });
+  $('#prev').onclick = function () { PR.i--; ls('pr', PR); pPractice(); };
+  if ($('#next')) $('#next').onclick = function () { PR.i++; ls('pr', PR); pPractice(); };
+  if ($('#fin')) $('#fin').onclick = function () { pPracticeDone(); };
+}
+function pPracticeDone() {
+  var keys = Object.keys(PR.ans), ok = keys.filter(function (k) { return PR.ans[k].ok; }).length;
+  view('<div class="q-wrap"><h2>จบชุด: ' + esc(PR.title) + '</h2><div class="card score"><div class="ring" style="--p:' + pct(ok, keys.length) + '"><div><div><b>' + ok + '/' + keys.length + '</b><br><small>ข้อที่ตอบ</small></div></div></div><div><p>ตอบ ' + keys.length + ' จาก ' + PR.ids.length + ' ข้อ · ถูก ' + ok + ' ข้อ</p><div class="row"><a class="btn pri" href="#/soc/review">ทบทวนข้อที่ผิด</a><a class="btn" href="' + PR.back + '">กลับ</a></div></div></div></div>');
+  flush(true);
+}
+
+// ---------- mock ----------
+function mockIds(m) {
+  if (!m.mix) return m.ids.slice();
+  var out = []; [1, 2, 3, 4, 5].forEach(function (s) { out = out.concat(shuffle(BANK.items.filter(function (it) { return it.sara === s; })).slice(0, 10).sort(function (a, b) { return b.year - a.year || a.n - b.n; }).map(function (x) { return x.id; })); });
+  return out;
+}
+function pMockHome() {
+  var run = ls('mock:' + pkey()), p = prog();
+  view('<div class="crumb"><a href="#/soc">← สังคมศึกษา</a></div><h2>สอบเสมือนจริง · A-Level สังคมศึกษา</h2>' +
+    '<div class="card"><ul class="list"><li>50 ข้อ · เวลา 90 นาที (เท่าสนามจริง) · เรียงสาระ 1–5 สาระละ 10 ข้อ</li><li>ไม่เฉลยระหว่างสอบ · ข้ามข้อ ย้อนกลับ และปักธงข้อที่ไม่แน่ใจได้</li><li>หมดเวลาระบบส่งให้อัตโนมัติ · ส่งแล้วเห็นคะแนนรวม คะแนนรายสาระ และเฉลยละเอียดทุกข้อ</li></ul></div>' +
+    (run && !run.done ? '<div class="notice" style="margin-top:16px">มีชุดที่ทำค้างไว้: ' + esc(run.name) + ' · <button class="btn pri" id="resume" style="margin-left:8px">ทำต่อ</button></div>' : '') +
+    '<div class="grid g3" style="margin-top:16px">' + BANK.mocks.map(function (m) {
+      var hist = p.mocks.filter(function (x) { return x.set === m.id; });
+      return '<div class="card hl"><h3>' + esc(m.name) + '</h3><p class="muted small">' + (m.mix ? 'สุ่มข้อจากปี 2568 และ 2569 สาระละ 10 ข้อ ทุกครั้งไม่ซ้ำกัน' : 'ข้อสอบจริงทั้งฉบับ ตามลำดับข้อในกระดาษจริง') + '</p><p class="small">' + (hist.length ? 'ทำแล้ว ' + hist.length + ' ครั้ง · ล่าสุด ' + hist[hist.length - 1].score + '/' + hist[hist.length - 1].total : 'ยังไม่เคยทำ') + '</p><button class="btn pri" data-m="' + m.id + '">เริ่มสอบ</button></div>';
+    }).join('') + '</div>');
+  if ($('#resume')) $('#resume').onclick = function () { go('#/soc/mock/run'); };
+  Array.prototype.forEach.call(document.querySelectorAll('[data-m]'), function (b) {
+    b.onclick = function () {
+      var m = BANK.mocks.filter(function (x) { return x.id === b.dataset.m; })[0];
+      confirmBox('<h3>เริ่ม ' + esc(m.name) + '?</h3><p>50 ข้อ · 90 นาที · เวลาเริ่มนับทันทีที่กดเริ่ม' + (run && !run.done ? '<br><b class="pink">ชุดที่ค้างไว้จะถูกยกเลิก</b>' : '') + '</p>', 'เริ่มจับเวลา', function () {
+        var ids = mockIds(m);
+        ls('mock:' + pkey(), {id: rid('M'), set: m.id, name: m.name, ids: ids, ans: {}, flag: {}, sec: {}, i: 0, start: Date.now(), end: Date.now() + m.min * 60000, min: m.min});
+        go('#/soc/mock/run');
+      });
+    };
+  });
+}
+function confirmBox(html, yes, fn, no) {
+  var md = $('#modal'); $('#modalBox').innerHTML = html + '<div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn" id="mNo">' + (no || 'ยกเลิก') + '</button><button class="btn pri" id="mYes">' + yes + '</button></div>';
+  md.hidden = false; $('#mNo').onclick = function () { md.hidden = true; }; $('#mYes').onclick = function () { md.hidden = true; fn(); };
+}
+function pMockRun() {
+  var K = 'mock:' + pkey(), R = ls(K);
+  if (!R || R.done) return go('#/soc/mock');
+  if (Date.now() >= R.end) return submitMock(R, true);
+  var it = ITEMS[R.ids[R.i]], n = R.ids.length, answered = Object.keys(R.ans).length;
+  ACT.itemSec = 0;
+  function pal() { return '<div class="pal">' + R.ids.map(function (id, i) { return (i % 10 === 0 ? '<div class="sh">สาระ ' + (i / 10 + 1) + ' ' + SHORT[i / 10 + 1] + '</div>' : '') + '<button data-i="' + i + '" class="' + (R.ans[id] ? 'ans ' : '') + (R.flag[id] ? 'flg ' : '') + (i === R.i ? 'cur' : '') + '">' + (i + 1) + '</button>'; }).join('') + '</div><div class="legend"><span><i style="background:rgba(255,79,163,.4)"></i>ตอบแล้ว</span><span><i style="background:var(--warn);border-radius:50%"></i>ปักธง</span></div>'; }
+  view('<div class="mock-bar"><div><b>' + esc(R.name) + '</b><div class="small muted">ตอบแล้ว ' + answered + '/' + n + '</div></div><div class="timer" id="timer">' + mmss((R.end - Date.now()) / 1000) + '</div><div class="row"><button class="btn only-m" id="palBtn">ข้อทั้งหมด</button><button class="btn pri" id="submit">ส่งคำตอบ</button></div></div>' +
+    '<div class="mock-layout"><div><article class="q-card"><div class="q-no"><span class="tag">ข้อ ' + (R.i + 1) + '/' + n + '</span><span class="tag">สาระ ' + it.sara + ' ' + SHORT[it.sara] + '</span>' + badge(it) + '</div>' +
+    stemHtml(it) + choicesHtml(it, {chosen: R.ans[it.id]}) + '</article>' +
+    '<div class="q-nav"><button class="btn" id="prev"' + (R.i ? '' : ' disabled') + '>← ก่อนหน้า</button><button class="btn flagbtn' + (R.flag[it.id] ? ' on' : '') + '" id="flag">⚑ ' + (R.flag[it.id] ? 'เลิกปักธง' : 'ปักธงไว้ดูอีกที') + '</button><button class="btn pri" id="next"' + (R.i < n - 1 ? '' : ' disabled') + '>ถัดไป →</button></div></div>' +
+    '<aside class="card palette only-d" id="palette">' + pal() + '</aside></div>');
+  function save() { R.sec[it.id] = (R.sec[it.id] || 0) + ACT.itemSec; ACT.itemSec = 0; ls(K, R); }
+  window.__tick = function () { var t = $('#timer'); if (!t) return; var left = (R.end - Date.now()) / 1000; t.textContent = mmss(left); t.classList.toggle('low', left < 300); if (left <= 0) { save(); submitMock(ls(K), true); } };
+  Array.prototype.forEach.call(document.querySelectorAll('.ch'), function (b) { b.onclick = function () { var k = Number(b.dataset.k); if (R.ans[it.id] === k) delete R.ans[it.id]; else R.ans[it.id] = k; save(); pMockRun(); }; });
+  function jump(i) { save(); R.i = i; ls(K, R); pMockRun(); }
+  $('#prev').onclick = function () { jump(R.i - 1); };
+  $('#next').onclick = function () { jump(R.i + 1); };
+  $('#flag').onclick = function () { if (R.flag[it.id]) delete R.flag[it.id]; else R.flag[it.id] = 1; save(); pMockRun(); };
+  Array.prototype.forEach.call(document.querySelectorAll('#palette [data-i]'), function (b) { b.onclick = function () { jump(Number(b.dataset.i)); }; });
+  $('#palBtn').onclick = function () {
+    var md = $('#modal'); $('#modalBox').innerHTML = '<h3>เลือกข้อ</h3>' + pal() + '<div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="mNo">ปิด</button></div>'; md.hidden = false;
+    $('#mNo').onclick = function () { md.hidden = true; };
+    Array.prototype.forEach.call(document.querySelectorAll('#modalBox [data-i]'), function (b) { b.onclick = function () { md.hidden = true; jump(Number(b.dataset.i)); }; });
+  };
+  $('#submit').onclick = function () {
+    save(); var left = n - Object.keys(R.ans).length, fl = Object.keys(R.flag).length;
+    confirmBox('<h3>ส่งคำตอบเลยไหม?</h3><p>' + (left ? 'ยังไม่ได้ตอบ <b class="pink">' + left + ' ข้อ</b><br>' : 'ตอบครบทุกข้อแล้ว<br>') + (fl ? 'ปักธงไว้ ' + fl + ' ข้อ<br>' : '') + 'เหลือเวลา ' + mmss((R.end - Date.now()) / 1000) + '</p>', 'ส่งคำตอบ', function () { submitMock(ls(K), false); }, 'ทำต่อ');
+  };
+}
+function submitMock(R, timeout) {
+  var K = 'mock:' + pkey(); if (!R || R.done) return go('#/soc/mock');
+  var by = {}, score = 0, now = Math.min(Date.now(), R.end);
+  R.ids.forEach(function (id) {
+    var it = ITEMS[id], c = R.ans[id], b = by[it.sara] = by[it.sara] || [0, 0];
+    var ok = record(it, c == null ? '' : c, 'mock', R.set, R.sec[id] || 0);
+    b[1]++; if (ok) { b[0]++; score++; }
+  });
+  var res = {id: R.id, set: R.set, name: R.name, score: score, total: R.ids.length, bySara: by, usedSec: Math.round((now - R.start) / 1000), timeout: !!timeout, at: Date.now(), ids: R.ids, ans: R.ans, answered: Object.keys(R.ans).length};
+  var p = prog(); p.mocks.push(res); if (p.mocks.length > 30) p.mocks = p.mocks.slice(-30); saveProg(p);
+  Q.add({type: 'mock', eid: R.id, set: R.set, score: score, total: R.ids.length, bySara: by, usedSec: res.usedSec, timeout: !!timeout, answered: res.answered});
+  R.done = true; ls(K, R); flush(true);
+  go('#/soc/mock/result/' + R.id);
+}
+function pMockResult(id) {
+  var p = prog(), r = p.mocks.filter(function (x) { return x.id === id; })[0]; if (!r) return go('#/soc/mock');
+  var filter = ls('rvf') || 'all';
+  view('<div class="crumb"><a href="#/soc/mock">← สอบเสมือนจริง</a></div><h2>ผลสอบ: ' + esc(r.name) + '</h2>' + (r.timeout ? '<div class="notice">หมดเวลา ระบบส่งคำตอบให้อัตโนมัติ</div>' : '') +
+    '<div class="card score" style="margin-top:12px"><div class="ring" style="--p:' + pct(r.score, r.total) + '"><div><div><b>' + r.score + '</b><br><small>จาก ' + r.total + ' ข้อ</small></div></div></div><div><p style="margin:0">ร้อยละ ' + pct(r.score, r.total) + ' · ตอบ ' + r.answered + '/' + r.total + ' ข้อ · ใช้เวลา ' + mmss(r.usedSec) + ' นาที</p><p class="small muted">ส่งเมื่อ ' + thDate(r.at) + ' (เวลาไทย)</p></div></div>' +
+    '<h3 style="margin-top:22px">คะแนนรายสาระ</h3><div class="card"><table class="tbl"><tr><th>สาระ</th><th class="n">ถูก</th><th style="width:40%"></th></tr>' + [1, 2, 3, 4, 5].map(function (s) { var b = r.bySara[s] || [0, 0]; return '<tr><td>' + s + ' ' + esc(SARA[s].name) + '</td><td class="n">' + b[0] + '/' + b[1] + '</td><td><div class="bar"><i style="width:' + pct(b[0], b[1]) + '%"></i></div></td></tr>'; }).join('') + '</table></div>' +
+    '<div class="section"><h3>เฉลยละเอียด</h3><div class="row"><button class="btn' + (filter === 'all' ? ' pri' : '') + '" data-f="all">ทุกข้อ</button><button class="btn' + (filter === 'wrong' ? ' pri' : '') + '" data-f="wrong">เฉพาะข้อที่ผิด/ไม่ได้ตอบ</button></div></div>' +
+    '<div class="rv">' + r.ids.map(function (iid, i) { var it = ITEMS[iid], c = r.ans[iid], ok = c != null && isRight(it, c); if (filter === 'wrong' && ok) return ''; return '<button data-i="' + i + '"><span class="m ' + (c == null ? 's' : ok ? 'r' : 'w') + '">' + (c == null ? '–' : ok ? '✓' : '✗') + '</span><span class="t"><b>ข้อ ' + (i + 1) + '</b> · ' + esc(it.stem.split('\n')[0]) + '</span></button>'; }).join('') + '</div>' +
+    '<div class="row" style="margin-top:20px"><a class="btn pri" href="#/soc/review">ฝึกข้อที่ผิดซ้ำ</a><a class="btn" href="#/soc">กลับหน้าสังคม</a></div>');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-f]'), function (b) { b.onclick = function () { ls('rvf', b.dataset.f); pMockResult(id); }; });
+  Array.prototype.forEach.call(document.querySelectorAll('.rv [data-i]'), function (b) { b.onclick = function () { go('#/soc/mock/review/' + id + '/' + b.dataset.i); }; });
+}
+function pMockReview(id, i) {
+  var p = prog(), r = p.mocks.filter(function (x) { return x.id === id; })[0]; if (!r) return go('#/soc/mock');
+  i = Math.max(0, Math.min(r.ids.length - 1, Number(i) || 0));
+  var it = ITEMS[r.ids[i]], c = r.ans[it.id];
+  view('<div class="q-wrap"><div class="crumb"><a href="#/soc/mock/result/' + id + '">← กลับไปหน้าผลสอบ</a></div><div class="q-top"><div class="q-meta"><b>เฉลย ' + esc(r.name) + '</b> · ข้อ ' + (i + 1) + '/' + r.ids.length + '</div></div>' +
+    '<article class="q-card"><div class="q-no">' + badge(it) + '<span class="tag">สาระ ' + it.sara + ' · ' + it.topic + ' ' + esc(TOPIC[it.topic].name) + '</span></div>' + stemHtml(it) + choicesHtml(it, {reveal: true, chosen: c}) + explainHtml(it, c == null ? '' : c) + '</article>' +
+    '<div class="q-nav"><button class="btn" id="prev"' + (i ? '' : ' disabled') + '>← ข้อก่อนหน้า</button><button class="btn pri" id="next"' + (i < r.ids.length - 1 ? '' : ' disabled') + '>ข้อถัดไป →</button></div></div>');
+  $('#prev').onclick = function () { go('#/soc/mock/review/' + id + '/' + (i - 1)); };
+  $('#next').onclick = function () { go('#/soc/mock/review/' + id + '/' + (i + 1)); };
+}
+function pMe() {
+  var s = socStats(), p = s.p, topics = {};
+  BANK.items.forEach(function (it) { var t = topics[it.topic] = topics[it.topic] || {n: 0, d: 0, o: 0}; t.n++; var x = p.items[it.id]; if (x) { t.d++; if (x.ok) t.o++; } });
+  var q = Q.list().filter(function (x) { return x.stu === pkey() && x.type !== 'session'; }).length;
+  view('<div class="crumb"><a href="#/soc">← สังคมศึกษา</a></div><h2>ผลของฉัน · สังคมศึกษา</h2><p class="muted small">ข้อมูลในเครื่องนี้ · ' + (student.preview || !BACKEND ? 'โหมดตัวอย่าง ไม่ได้ส่งไปที่ครู' : (q ? 'รอส่งให้ครู ' + q + ' รายการ (ส่งอัตโนมัติเมื่อออนไลน์)' : 'ส่งให้ครูออมครบแล้ว ✓')) + '</p>' +
+    '<div class="stats"><div class="stat"><b>' + s.done + '/100</b><span>ข้อที่ทำแล้ว</span></div><div class="stat"><b>' + pct(s.ok, s.done) + '%</b><span>ถูก (ผลล่าสุดของแต่ละข้อ)</span></div><div class="stat"><b>' + mins(p.active) + '</b><span>เวลาฝึกจริง</span></div><div class="stat"><b>' + p.mocks.length + '</b><span>ครั้งที่สอบเสมือนจริง</span></div></div>' +
+    '<div class="card"><table class="tbl"><tr><th>สาระ / หัวข้อย่อย</th><th class="n">ทำแล้ว</th><th class="n">ถูก</th></tr>' + BANK.saras.map(function (sa) { var b = s.by[sa.id]; return '<tr><td><b>' + sa.id + ' ' + esc(sa.name) + '</b></td><td class="n"><b>' + b.done + '/' + b.n + '</b></td><td class="n"><b>' + (b.done ? pct(b.ok, b.done) + '%' : '–') + '</b></td></tr>' + sa.topics.map(function (t) { var x = topics[t.id]; return x ? '<tr><td class="small" style="padding-left:22px">' + t.id + ' ' + esc(t.name) + '</td><td class="n small">' + x.d + '/' + x.n + '</td><td class="n small">' + (x.d ? pct(x.o, x.d) + '%' : '–') + '</td></tr>' : ''; }).join(''); }).join('') + '</table></div>' +
+    '<h3 style="margin-top:22px">ประวัติสอบเสมือนจริง</h3>' + (p.mocks.length ? '<div class="rv">' + p.mocks.slice().reverse().map(function (r) { return '<button data-id="' + r.id + '"><span class="m r">' + pct(r.score, r.total) + '</span><span class="t"><b>' + esc(r.name) + '</b> · ' + r.score + '/' + r.total + ' · ' + thDate(r.at) + '</span></button>'; }).join('') + '</div>' : '<p class="muted">ยังไม่เคยสอบ · <a href="#/soc/mock">ลองสอบเสมือนจริง</a></p>') +
+    '<div class="row" style="margin-top:22px"><button class="btn ghost" id="lo">ออกจากระบบ (เปลี่ยนชื่อ)</button></div>');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-id]'), function (b) { b.onclick = function () { go('#/soc/mock/result/' + b.dataset.id); }; });
+  $('#lo').onclick = function () { confirmBox('<h3>ออกจากระบบ?</h3><p>ข้อมูลที่บันทึกแล้วยังอยู่ครบ</p>', 'ออกจากระบบ', logout); };
+}
+function pSources() {
+  var flagged = BANK.items.filter(function (it) { return it.f; }).map(function (it) { return it.id; });
+  view('<div class="crumb"><a href="javascript:history.back()">← กลับ</a></div><h2>ที่มาของข้อสอบ</h2><div class="card"><p>' + esc(BANK.meta.source) + '</p><ul class="list">' +
+    Object.keys(BANK.meta.urls).sort().reverse().map(function (y) { return '<li>A-Level 70 สังคมศึกษา ปีการศึกษา ' + y + ' (สอบ ' + esc(BANK.meta.dates[y]) + ') · <a href="' + esc(BANK.meta.urls[y]) + '" target="_blank" rel="noopener">ไฟล์ข้อสอบและเฉลยของ ทปอ.</a></li>'; }).join('') +
+    '</ul><p>เฉลยทุกข้อใช้ตามที่ ทปอ. เผยแพร่ · ปี 2568 ข้อ 27 ทปอ. เฉลย 2 คำตอบ (ข้อ 3 หรือ 5) และข้อ 42 ทปอ. ประกาศให้คะแนนทุกคน (“ฟรีทุกข้อ”) · ปี 2569 ข้อ 29 แก้คำพิมพ์ผิดในต้นฉบับ “ขาดตลาต” เป็น “ขาดตลาด”</p>' +
+    '<p>' + esc(BANK.meta.expl) + ' · ข้อที่มีประเด็นควรรู้เพิ่มเติม (' + flagged.length + ' ข้อ) แสดง “ข้อควรรู้” ไว้ใต้คำอธิบาย</p><p class="muted small">จัดหมวดสาระ/หัวข้อย่อยโดยครู เพื่อการฝึก · ตรวจแหล่งที่มาเมื่อ ' + esc(BANK.meta.checked) + '</p></div>');
+}
+
+// ---------- router ----------
+function route() {
+  var h = location.hash.replace(/^#/, '') || '/', m;
+  $('#modal').hidden = true;
+  if (h === '/' || h === '') return pLanding();
+  if (h === '/register') return pRegister();
+  if (h === '/sources') return pSources();
+  if (!student) return go('#/register');
+  if (h === '/subjects') return pSubjects();
+  if (h === '/soc') return pSoc();
+  if ((m = h.match(/^\/soc\/sara\/(\d)$/))) return pSara(Number(m[1]));
+  if (h === '/soc/practice') return pPractice();
+  if (h === '/soc/review') return pReview();
+  if (h === '/soc/mock') return pMockHome();
+  if (h === '/soc/mock/run') return pMockRun();
+  if ((m = h.match(/^\/soc\/mock\/result\/([\w-]+)$/))) return pMockResult(m[1]);
+  if ((m = h.match(/^\/soc\/mock\/review\/([\w-]+)\/(\d+)$/))) return pMockReview(m[1], m[2]);
+  if (h === '/soc/me') return pMe();
+  go('#/');
+}
+window.addEventListener('hashchange', route);
+if (student && !student.preview && !BACKEND) { student = null; ls('student', null); }
+if (student && student.preview && BACKEND) { student = null; ls('student', null); }
+route(); flush(true);
+window.__EG = {Q: Q, ACT: ACT, flush: flush, prog: prog, BACKEND: BACKEND};
+})();
