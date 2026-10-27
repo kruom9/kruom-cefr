@@ -5,7 +5,12 @@
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 var app = $('#app'), nav = $('#nav'), back = $('#navBack'), backT = $('#navBackT'), brand = $('#navBrand'), title = $('#navTitle'), tabbar = $('#tabbar'), modal = $('#modal'), mbox = $('#modalBox'), about = $('#about'), sync = $('#sync');
-var SHORT = {1: 'ศาสนา', 2: 'หน้าที่พลเมือง', 3: 'เศรษฐศาสตร์', 4: 'ประวัติศาสตร์', 5: 'ภูมิศาสตร์'};
+var EG = function () { return window.__EG || {}; };
+function SUBS() { return EG().subjects || [{id: 'soc', name: 'สังคมศึกษา', live: true}]; }
+function curSub() { var f = EG().sub; return f ? f() : 'soc'; }
+function subOf(id) { return SUBS().filter(function (x) { return x.id === id; })[0]; }
+var SHORT = {get: function (s) { var f = EG().short; return f ? f(s) || '' : ''; }};
+var SHORTNAME = {soc: 'สังคม', thai: 'ไทย', phy: 'ฟิสิกส์', chem: 'เคมี', bio: 'ชีวะ', sci: 'วิทย์ประยุกต์', eng: 'อังกฤษ'};
 var GLYPH = {'สังคมศึกษา': 'ส', 'ภาษาไทย': 'ก', 'ภาษาอังกฤษ': 'Aa', 'ฟิสิกส์': 'Φ', 'เคมี': 'Ch', 'ชีววิทยา': 'Bi', 'วิทยาศาสตร์ประยุกต์': 'Sc'};
 var io = null, pending = false, lastView = null;
 function student() { try { return JSON.parse(localStorage.getItem('eg6:student') || 'null'); } catch (e) { return null; } }
@@ -14,14 +19,16 @@ function routeName(h) {
   if (h === '/register') return 'register';
   if (h === '/sources') return 'sources';
   if (h === '/subjects') return 'home';
-  if (h === '/soc') return 'soc';
-  if (/^\/soc\/sara\//.test(h)) return 'sara';
-  if (h === '/soc/practice' || h === '/soc/review') return 'practice';
-  if (h === '/soc/mock') return 'mock';
-  if (h === '/soc/mock/run') return 'mockrun';
-  if (/^\/soc\/mock\/result\//.test(h)) return 'result';
-  if (/^\/soc\/mock\/review\//.test(h)) return 'mockreview';
-  if (h === '/soc/me') return 'me';
+  var m = h.match(/^\/([a-z0-9]+)(\/.*)?$/), r = m && subOf(m[1]) ? (m[2] || '') : null; // ทุกวิชาใช้หน้าแบบเดียวกัน (#/<วิชา>/…)
+  if (r === null) return 'other';
+  if (r === '') return 'soc';
+  if (/^\/sara\//.test(r)) return 'sara';
+  if (r === '/practice' || r === '/review') return 'practice';
+  if (r === '/mock') return 'mock';
+  if (r === '/mock/run') return 'mockrun';
+  if (/^\/mock\/result\//.test(r)) return 'result';
+  if (/^\/mock\/review\//.test(r)) return 'mockreview';
+  if (r === '/me') return 'me';
   return 'other';
 }
 var TAB = {home: 'home', soc: 'practice', sara: 'practice', mock: 'mock', result: 'mock', me: 'me', sources: ''};
@@ -33,7 +40,7 @@ function swap(root, map) { $$('*', root).forEach(function (el) { if (el.children
 function textNode(el) { for (var n = el && el.firstChild; n; n = n.nextSibling) if (n.nodeType === 3 && n.nodeValue.trim()) return n; return null; }
 function ring(done, total, label) { var p = total ? Math.round(done * 100 / total) : 0; return '<div class="xring" style="--p:' + p + '" role="img" aria-label="' + (label || '') + ' ' + done + '/' + total + '"><span><b>' + done + '</b><small>/' + total + '</small></span></div>'; }
 var ICON_SOC = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
-var BTN = {'← ข้อก่อนหน้า': '‹ ก่อน', '← ก่อนหน้า': '‹ ก่อน', 'ข้าม →': 'ข้าม', 'ข้อถัดไป →': 'ต่อไป', 'ถัดไป →': 'ต่อไป', 'จบชุดนี้ ✓': 'จบ ✓', '⚑ ปักธงไว้ดูอีกที': '⚑ ปักธง', '⚑ เลิกปักธง': '⚑ เลิกธง', 'ข้อทั้งหมด': 'ทั้งหมด', 'ส่งคำตอบ': 'ส่ง', 'เริ่มสอบ': 'เริ่ม', 'เริ่มจับเวลา': 'เริ่ม', 'ทบทวนข้อที่ผิด': 'ทบทวน', 'ไปฝึกต่อ': 'ฝึกต่อ', 'ฝึกข้อที่ผิดซ้ำ': 'ฝึกข้อผิด', 'กลับหน้าสังคม': 'กลับ', 'ทุกข้อ': 'ทั้งหมด', 'เฉพาะข้อที่ผิด/ไม่ได้ตอบ': 'ผิด / ว่าง', 'ออกจากระบบ (เปลี่ยนชื่อ)': 'ออกจากระบบ', 'ใช่ ฉันเอง เริ่มเลย →': 'ใช่ ฉันเอง', 'กำลังตรวจรายชื่อ…': 'กำลังตรวจ…', 'เข้าดูแบบตัวอย่าง →': 'ดูตัวอย่าง', 'ไม่ใช่ฉัน / เปลี่ยนชื่อ': 'ไม่ใช่ฉัน', 'ลงทะเบียนเข้าใช้ →': 'เริ่มเลย', 'เข้าสู่ Exam Gym →': 'เริ่มเลย'};
+var BTN = {'← ข้อก่อนหน้า': '‹ ก่อน', '← ก่อนหน้า': '‹ ก่อน', 'ข้าม →': 'ข้าม', 'ข้อถัดไป →': 'ต่อไป', 'ถัดไป →': 'ต่อไป', 'จบชุดนี้ ✓': 'จบ ✓', '⚑ ปักธงไว้ดูอีกที': '⚑ ปักธง', '⚑ เลิกปักธง': '⚑ เลิกธง', 'ข้อทั้งหมด': 'ทั้งหมด', 'ส่งคำตอบ': 'ส่ง', 'เริ่มสอบ': 'เริ่ม', 'เริ่มจับเวลา': 'เริ่ม', 'ทบทวนข้อที่ผิด': 'ทบทวน', 'ไปฝึกต่อ': 'ฝึกต่อ', 'ฝึกข้อที่ผิดซ้ำ': 'ฝึกข้อผิด', 'กลับหน้าสังคม': 'กลับ', 'กลับหน้าภาษาไทย': 'กลับ', 'กลับหน้าฟิสิกส์': 'กลับ', 'กลับหน้าเคมี': 'กลับ', 'กลับหน้าชีววิทยา': 'กลับ', 'กลับหน้าวิทยาศาสตร์ประยุกต์': 'กลับ', 'ทุกข้อ': 'ทั้งหมด', 'เฉพาะข้อที่ผิด/ไม่ได้ตอบ': 'ผิด / ว่าง', 'ออกจากระบบ (เปลี่ยนชื่อ)': 'ออกจากระบบ', 'ใช่ ฉันเอง เริ่มเลย →': 'ใช่ ฉันเอง', 'กำลังตรวจรายชื่อ…': 'กำลังตรวจ…', 'เข้าดูแบบตัวอย่าง →': 'ดูตัวอย่าง', 'ไม่ใช่ฉัน / เปลี่ยนชื่อ': 'ไม่ใช่ฉัน', 'ลงทะเบียนเข้าใช้ →': 'เริ่มเลย', 'เข้าสู่ Exam Gym →': 'เริ่มเลย'};
 var MSG = {'โหลดรายชื่อห้องไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่': 'โหลดไม่สำเร็จ', 'โหลดรายชื่อไม่สำเร็จ ลองใหม่อีกครั้ง': 'โหลดไม่สำเร็จ', 'เชื่อมต่อไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่': 'เชื่อมต่อไม่ได้', 'ไม่พบชื่อที่ค้นหา': 'ไม่พบ', 'กำลังโหลดรายชื่อห้อง…': 'กำลังโหลด…', 'กำลังโหลดรายชื่อ…': 'กำลังโหลด…', 'ระบบบันทึกผล (Google Sheet ของครูออม) ยังไม่ได้เชื่อมต่อ · รายชื่อนักเรียนจะแสดงเมื่อเชื่อมต่อแล้ว': 'ยังไม่เชื่อมต่อระบบบันทึกผล', 'โหมดตัวอย่าง (สำหรับครูตรวจระบบ)': 'โหมดตัวอย่าง', 'หมดเวลา ระบบส่งคำตอบให้อัตโนมัติ': '⏱ หมดเวลา · ส่งอัตโนมัติ', 'ข้อมูลที่บันทึกแล้วยังอยู่ครบ': 'ข้อมูลยังอยู่ครบ', 'ส่งคำตอบเลยไหม?': 'ส่งเลย?', 'รหัสห้อง (ถามครูออม)': 'รหัสห้อง', 'เลขประจำตัวนักเรียน (5 หลัก)': 'เลขประจำตัว (5 หลัก)'};
 // ---------- ส่วนที่ใช้ร่วม: ป้ายข้อสอบ / คำอธิบาย ----------
 function qno() {
@@ -65,7 +72,7 @@ function explain(root) {
   $$('.flag', root).forEach(function (f) { more.appendChild(f); });
   if (cite) {
     var full = document.createElement('p'); full.className = 'cite-full'; full.textContent = cite.textContent; more.appendChild(full);
-    var cm = cite.textContent.match(/ปีการศึกษา (\d+) ข้อ (\d+)/); if (cm) setT(cite, 'ที่มา: ทปอ. · A-Level สังคม ' + cm[1] + ' ข้อ ' + cm[2]);
+    var cm = cite.textContent.match(/ปีการศึกษา (\d+) ข้อ (\d+)/); if (cm) setT(cite, 'ที่มา: ทปอ. · A-Level ' + (SHORTNAME[curSub()] || (subOf(curSub()) || {}).name || '') + ' ' + cm[1] + ' ข้อ ' + cm[2]);
   }
   var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn xmore'; btn.setAttribute('aria-expanded', 'false'); btn.textContent = 'ดูเฉลยทุกตัวเลือก';
   btn.onclick = function () { var on = card.classList.toggle('xopen'); btn.setAttribute('aria-expanded', String(on)); btn.textContent = on ? 'ย่อ' : 'ดูเฉลยทุกตัวเลือก'; };
@@ -96,12 +103,15 @@ var PAGE = {
   },
   home: function () {
     var h2 = $('h2', app); setT(h2, 'วิชา'); hide($('p.muted', app));
-    var on = $('.s.on', app);
-    if (on && once(on, 'h')) {
-      var m = on.textContent.match(/ทำแล้ว (\d+)\/(\d+)/), d = m ? +m[1] : 0, n = m ? +m[2] : 100;
-      on.innerHTML = '<i class="xic big">' + ICON_SOC + '</i><span class="xt"><b>สังคมศึกษา</b><small>A-Level</small></span>' + ring(d, n, 'ทำแล้ว');
-      var hero = document.createElement('div'); hero.className = 'xhero'; on.parentNode.parentNode.insertBefore(hero, on.parentNode); hero.appendChild(on);
-      var gh = document.createElement('h3'); gh.className = 'gh'; gh.textContent = 'เร็ว ๆ นี้'; hero.insertAdjacentElement('afterend', gh);
+    var ons = $$('.subj > .s.on', app);
+    if (ons.length && once(ons[0], 'h')) {
+      var hero = document.createElement('div'); hero.className = 'xhero'; ons[0].parentNode.parentNode.insertBefore(hero, ons[0].parentNode);
+      ons.forEach(function (on, i) {
+        var m = on.textContent.match(/ทำแล้ว (\d+)\/(\d+)/), d = m ? +m[1] : 0, n = m ? +m[2] : 100, id = on.getAttribute('data-sub') || 'soc', nm = $('b', on).textContent;
+        on.innerHTML = '<i class="xic big' + (id === 'soc' ? '' : ' c' + (i % 6 + 1)) + '">' + (id === 'soc' ? ICON_SOC : (GLYPH[nm] || nm.charAt(0))) + '</i><span class="xt"><b>' + nm.replace(/</g, '&lt;') + '</b><small>A-Level</small></span>' + ring(d, n, 'ทำแล้ว');
+        hero.appendChild(on);
+      });
+      if ($('.s.off', app)) { var gh = document.createElement('h3'); gh.className = 'gh'; gh.textContent = 'เร็ว ๆ นี้'; hero.insertAdjacentElement('afterend', gh); }
     }
     $$('.s.off', app).forEach(function (s, i) {
       if (!once(s, 'o')) return; hide($('small', s));
@@ -112,7 +122,7 @@ var PAGE = {
   },
   soc: function () {
     var h2 = $('h2', app);
-    if (h2 && once(h2, 's')) { setT(h2, 'สังคมศึกษา'); h2.insertAdjacentHTML('afterbegin', '<i class="xic big">' + ICON_SOC + '</i>'); var p = h2.nextElementSibling; if (p && p.matches('p.muted')) hide(p); }
+    if (h2 && once(h2, 's')) { var sid = curSub(), snm = (subOf(sid) || {}).name || ''; setT(h2, snm); h2.insertAdjacentHTML('afterbegin', '<i class="xic big' + (sid === 'soc' ? '' : ' c' + ((SUBS().filter(function (x) { return x.live; }).map(function (x) { return x.id; }).indexOf(sid)) % 6 + 1)) + '">' + (sid === 'soc' ? ICON_SOC : (GLYPH[snm] || snm.charAt(0))) + '</i>'); var p = h2.nextElementSibling; if (p && p.matches('p.muted')) hide(p); }
     heroStats({'ตอบถูก (ล่าสุด)': 'ถูก', 'นาทีที่ฝึกในเครื่องนี้': 'นาที', 'สอบเสมือนจริงดีที่สุด': 'สอบดีสุด'});
     var g3 = $('.grid.g3', app);
     if (g3 && once(g3, 'g')) {
@@ -160,7 +170,7 @@ var PAGE = {
   mock: function () {
     var h2 = $('h2', app); setT(h2, 'สอบจำลอง');
     var rules = $('.card .list', app);
-    if (rules && once(rules, 'r')) rules.parentNode.innerHTML = '<div class="xchips"><span>✎ 50 ข้อ</span><span>⏱ 90 นาที</span><span>⚑ ปักธงได้</span><span>⏲ หมดเวลา = ส่ง</span></div>';
+    if (rules && once(rules, 'r')) var ln = rules.textContent.match(/^(\d+) ข้อ · เวลา (\d+) นาที/) || [0, 50, 90]; rules.parentNode.innerHTML = '<div class="xchips"><span>✎ ' + ln[1] + ' ข้อ</span><span>⏱ ' + ln[2] + ' นาที</span><span>⚑ ปักธงได้</span><span>⏲ หมดเวลา = ส่ง</span></div>';
     var rs = $('#resume', app); if (rs) { var n = textNode(rs.parentNode); if (n && /^มีชุดที่ทำค้างไว้/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace('มีชุดที่ทำค้างไว้: ', 'ค้างไว้: ').replace(/ · $/, ' '); }
     $$('.card.hl', app).forEach(function (c) {
       if (!once(c, 'm')) return;
@@ -186,7 +196,7 @@ var PAGE = {
     }
     $$('#app > h3, .section > h3').forEach(function (h) { if (h.textContent === 'คะแนนรายสาระ') { setT(h, 'รายสาระ'); h.className = 'gh'; } if (h.textContent === 'เฉลยละเอียด') setT(h, 'เฉลย'); });
     var tb = $('.tbl', app);
-    if (tb && once(tb, 't')) { var r0 = $('tr', tb); hide(r0); $$('tr td:first-child', tb).forEach(function (td) { var m = td.textContent.match(/^(\d) /); if (m) setT(td, m[1] + ' ' + SHORT[m[1]]); }); }
+    if (tb && once(tb, 't')) { var r0 = $('tr', tb); hide(r0); $$('tr td:first-child', tb).forEach(function (td) { var m = td.textContent.match(/^(\d+) /); if (m) setT(td, m[1] + ' ' + SHORT.get(m[1])); }); }
   },
   mockreview: function () {
     var top = $('.q-top', app); if (top) { hide(top); var mm = top.textContent.match(/ข้อ (\d+)\/(\d+)/); if (mm) { title.textContent = 'ข้อ ' + mm[1] + '/' + mm[2]; nav.classList.add('shrunk'); } }
@@ -200,7 +210,7 @@ var PAGE = {
     var tb = $('.tbl', app);
     if (tb && once(tb, 't')) {
       var th = $$('th', tb); if (th[0]) setT(th[0], 'สาระ'); if (th[1]) setT(th[1], 'ทำ');
-      $$('tr', tb).forEach(function (tr) { var td = tr.firstElementChild; if (td && td.classList.contains('small')) tr.classList.add('xsub'); else { var b = td && $('b', td), m = b && b.textContent.match(/^(\d) /); if (m) setT(b, m[1] + ' ' + SHORT[m[1]]); } });
+      $$('tr', tb).forEach(function (tr) { var td = tr.firstElementChild; if (td && td.classList.contains('small')) tr.classList.add('xsub'); else { var b = td && $('b', td), m = b && b.textContent.match(/^(\d+) /); if (m) setT(b, m[1] + ' ' + SHORT.get(m[1])); } });
       var card = tb.closest('.card'), btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn xmore'; btn.textContent = 'หัวข้อย่อย ▾'; btn.setAttribute('aria-expanded', 'false');
       btn.onclick = function () { var on = card.classList.toggle('xopen'); btn.textContent = on ? 'ย่อ ▴' : 'หัวข้อย่อย ▾'; btn.setAttribute('aria-expanded', String(on)); };
       card.insertAdjacentElement('afterend', btn);
@@ -256,7 +266,7 @@ function decorate() {
   document.body.classList.toggle('big', big);
   if (fresh) {
     var a = $('.crumb a', app);
-    if (a) { back.hidden = false; brand.hidden = true; var bt = a.textContent.replace(/^\s*←\s*/, '').trim(); backT.textContent = {'กลับไปหน้าผลสอบ': 'ผลสอบ', 'เลือกวิชา': 'วิชา', 'สอบเสมือนจริง': 'สอบจำลอง', 'สังคมศึกษา': 'สังคม', 'เปลี่ยนห้อง': 'ห้อง', 'เลือกชื่อใหม่': 'ชื่อ', 'หน้าแรก': 'หน้าแรก'}[bt] || bt || 'กลับ'; back.onclick = function () { a.click(); }; }
+    if (a) { back.hidden = false; brand.hidden = true; var bt = a.textContent.replace(/^\s*←\s*/, '').trim(); backT.textContent = {'กลับไปหน้าผลสอบ': 'ผลสอบ', 'เลือกวิชา': 'วิชา', 'สอบเสมือนจริง': 'สอบจำลอง', 'สังคมศึกษา': 'สังคม', 'ภาษาไทย': 'ไทย', 'วิทยาศาสตร์ประยุกต์': 'วิทย์ฯ', 'เปลี่ยนห้อง': 'ห้อง', 'เลือกชื่อใหม่': 'ชื่อ', 'หน้าแรก': 'หน้าแรก'}[bt] || bt || 'กลับ'; back.onclick = function () { a.click(); }; }
     else { back.hidden = true; brand.hidden = false; back.onclick = null; }
     nav.classList.toggle('brandmode', !a);
     if (io) { io.disconnect(); io = null; }
@@ -272,11 +282,20 @@ function decorate() {
       if ('IntersectionObserver' in window) { io = new IntersectionObserver(function (es) { nav.classList.toggle('shrunk', !es[0].isIntersecting); }, {rootMargin: '-' + (nav.offsetHeight + 4) + 'px 0px 0px 0px'}); io.observe(lt); }
     } else if (r === 'mockrun') title.textContent = 'สอบจำลอง';
   }
+  var cs = curSub(); $$('a[data-tab]', tabbar).forEach(function (x) { var t = x.dataset.tab, hr = t === 'practice' ? '#/' + cs : t === 'mock' ? '#/' + cs + '/mock' : t === 'me' ? '#/' + cs + '/me' : null; if (hr && x.getAttribute('href') !== hr) x.setAttribute('href', hr); });
+  aboutCounts();
   var tab = st ? TAB[r] : undefined, show = st && tab !== undefined;
   tabbar.hidden = !show; document.body.classList.toggle('has-tabs', !!show);
   $$('a', tabbar).forEach(function (x) { var on = x.dataset.tab === tab; x.classList.toggle('on', on); if (on) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current'); });
   var stp = $('.steps', app); if (stp) stp.classList.add('seg');
   var f = $('[data-f]', app); if (f && f.parentNode) f.parentNode.classList.add('seg');
+}
+function aboutCounts() {
+  var live = SUBS().filter(function (x) { return x.live && x.bank; }), n = 0, yr = {}; if (!live.length) return;
+  live.forEach(function (x) { n += x.bank.items.length; x.bank.items.forEach(function (it) { yr[it.year] = 1; }); });
+  var y = Object.keys(yr).sort(), a = $('[data-ab="n"]', about), b = $('[data-ab="nt"]', about), c = $('[data-ab="s"]', about), d = $('[data-ab="st"]', about);
+  if (a) setT(a, String(n)); if (b) setT(b, 'ข้อสอบจริง ทปอ. ' + (y.length > 1 ? y[0] + '–' + y[y.length - 1] : y[0] || ''));
+  if (c) setT(c, String(live.length)); if (d) setT(d, live.length > 1 ? 'วิชา · ' + live.map(function (x) { return SHORTNAME[x.id] || x.name; }).join(' ') : 'สาระ · 17 หัวข้อ');
 }
 function schedule() { if (!pending) { pending = true; Promise.resolve().then(decorate); } }
 new MutationObserver(function (ms) {
