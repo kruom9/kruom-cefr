@@ -205,7 +205,7 @@ function logout() {
 function pRegister() {
   if (!BACKEND) return pRegisterV1();
   view('<div class="loading">กำลังโหลด…</div>');
-  jsonp({action: 'health'}).then(function (d) { if (d && d.auth === 2) pAuth(d); else pRegisterV1(); })
+  jsonp({action: 'health'}).then(function (d) { if (d && d.auth === 3) pLogin3(); else if (d && d.auth === 2) pAuth(d); else pRegisterV1(); })
     .catch(function () { view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2>เข้าสู่ระบบ</h2><div class="notice err">เชื่อมต่อไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่</div><div class="auth"><button class="btn pri big" id="retry">ลองใหม่</button></div>'); $('#retry').onclick = pRegister; });
 }
 // ---------- เข้าสู่ระบบรุ่น 1 (รายชื่อ) · ใช้เฉพาะเมื่อ backend ยังเป็นรุ่นเก่า ----------
@@ -367,6 +367,43 @@ function pAuth(meta) {
     });
   }
   s1();
+}
+
+// ---------- เข้าสู่ระบบรุ่น 3: ชื่อ-นามสกุล + รหัสผ่าน (หน้าเดียว) · ใช้เมื่อ backend ตอบ health auth:3 ----------
+function pLogin3() {
+  var cs = sessionStorage.getItem('eg6:cs'); if (!cs) { cs = rid('C'); try { sessionStorage.setItem('eg6:cs', cs); } catch (e) {} }
+  view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2 class="ah">เข้าสู่ระบบ</h2>' +
+    '<form class="auth" id="af" autocomplete="on" novalidate>' +
+    '<div class="group fields"><label class="cell"><span>ชื่อ-นามสกุล</span><input id="un" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="80" enterkeyhint="next" placeholder="ชื่อ นามสกุล" lang="th"></label>' +
+    '<label class="cell"><span>รหัสผ่าน</span><input id="pw" name="password" type="password" autocomplete="current-password" autocapitalize="off" maxlength="64" enterkeyhint="go" placeholder="รหัสผ่าน"></label></div>' +
+    '<p class="ahint">ไม่ต้องใส่คำนำหน้า · ลืมรหัสผ่าน แจ้งครูออม</p>' +
+    '<p class="aerr" id="msg" role="alert" aria-live="polite"></p>' +
+    '<button class="btn pri big" id="go" type="submit">เข้าสู่ระบบ</button>' +
+    '<p class="consent">เข้าสู่ระบบ = ยินยอมให้ส่งผลฝึกถึงครูออม <button type="button" class="xi" data-about="privacy" aria-label="ความเป็นส่วนตัว">ⓘ</button></p></form>');
+  var un = $('#un'), pw = $('#pw'), go_ = $('#go'), msg = $('#msg');
+  function err(t) { msg.textContent = t || ''; }
+  function busy(on) { go_.disabled = !!on; go_.textContent = on ? 'กำลังตรวจ…' : 'เข้าสู่ระบบ'; }
+  err(AUTH_FLASH); AUTH_FLASH = '';
+  [un, pw].forEach(function (x) { x.addEventListener('input', function () { err(''); }); });
+  setTimeout(function () { try { un.focus({preventScroll: true}); } catch (e) {} }, 60);
+  $('#af').onsubmit = function (e) {
+    e.preventDefault(); if (go_.disabled) return;
+    var u = un.value.replace(/\s+/g, ' ').trim(), p = pw.value.trim();
+    if (!u) { err('พิมพ์ชื่อและนามสกุล'); un.focus(); return; }
+    if (!p) { err('พิมพ์รหัสผ่าน'); pw.focus(); return; }
+    busy(true);
+    sha256hex('eg6pw|' + p).then(function (h) { return apost({action: 'login3', cs: cs, user: u, pw: h}); })
+      .then(function (d) {
+        if (d && d.ok && d.found) {
+          pw.value = ''; student = {room: d.room, no: d.no, name: d.name, role: d.role, token: d.token, at: Date.now()}; ls('student', student);
+          Q.blocked = ''; go('#/subjects'); flush(true); return;
+        }
+        busy(false); pw.value = '';
+        if (d && d.code === 'gone') { pRegister(); return; }
+        err((d && d.message) || 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง'); (d && d.code === 'ambiguous' ? un : pw).focus();
+      })
+      .catch(function (e) { busy(false); err(e && e.message === 'nocrypto' ? 'เบราว์เซอร์นี้ใช้ไม่ได้ ลองเปิดด้วย Chrome หรือ Safari' : 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง'); });
+  };
 }
 
 function socStats() {
