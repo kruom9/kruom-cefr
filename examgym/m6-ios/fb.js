@@ -1,6 +1,6 @@
 /* Exam Gym ม.6 · Firebase login path (Firebase Auth Email/Password + Firestore)
  * ใช้เมื่อ config.js ตั้ง AUTH_PROVIDER: 'firebase' · ไม่งั้นไฟล์นี้ไม่ทำอะไร (ระบบ Apps Script เดิมทำงานต่อ)
- * นักเรียนพิมพ์เลขประจำตัว → แปลงเป็นอีเมลภายใน <เลข>@<STUDENT_EMAIL_DOMAIN> · ครูใช้ชื่อผู้ใช้ (KRUOM / KRUPANG) หรืออีเมลจริง
+ * นักเรียนพิมพ์เลขประจำตัว → แปลงเป็นอีเมลภายใน <เลข>@<STUDENT_EMAIL_DOMAIN> · ครูใช้ชื่อผู้ใช้ (KRUOM, kruom9, 99900 / KRUPANG, 99901) หรืออีเมลจริง
  * ไม่มีรหัสผ่านครั้งแรกในไฟล์นี้ (ตรวจ "ห้ามซ้ำรหัสครั้งแรก" จากรหัสที่ผู้ใช้เพิ่งพิมพ์เข้าสู่ระบบ) */
 (function () {
 'use strict';
@@ -38,12 +38,12 @@ function emailOf(user) {
 }
 // ชื่อผู้ใช้ครู (ไม่สนตัวพิมพ์เล็ก/ใหญ่ เช่น KRUPANG = krupang) → อีเมลบัญชี Firebase เดิมของครู (uid/รหัสผ่าน/mustChange เดิมทั้งหมด)
 // เก็บอีเมลแบบเข้ารหัส AES-GCM (กุญแจจาก PBKDF2 ของชื่อผู้ใช้) จึงไม่มีอีเมลจริงอยู่ใน repo · ไม่ใช่ความลับระดับรหัสผ่าน (ผู้รู้ชื่อผู้ใช้ถอดได้)
-var ALIASES = {"89732c93f3a27096743b5649": ["Kjg2CHNyvKuFBeW3", "NXxOW+2Fcs2LcIwbPgQgzU2x5x+KvRNnwtGAbcukndQ="], "8d353c0524a576df328a6b1c": ["rXkePhEBzH8RY+2o", "L1I+HPR8iObgqE87BONmxJ7xpa661vk2ZvvGxGmTbjxolHjid81vw10+VpogWeaE"]};
+var ALIASES = {"89732c93f3a27096743b5649": ["M528H6WhrrR8AT+5", "kczqS+P+vPEYpLuvrQte2YQw1MShDR5EXKmWKx/voTM="], "6b34ebd08d7f9ad65118509a": ["mMz1/gVwyHY0rAzK", "B6mpLYz0lTrLbvLCwdFHksrhVhxgmIwI+epDJut8MSk="], "c8bfdf9ba2a9c63687cffddc": ["pfhx9SAzssjqhEM6", "RBc42EFIaBS/7eW1ArTzWKBrr3H6k0Je5vuNSgOyayw="], "8d353c0524a576df328a6b1c": ["W8kwejHntBRSDDpe", "/IJ8feX/dr6BNvqxWP7KqNFqNxwtF3la6bn9PNm1SIu0UtvdOX0R7y0nscA/BAYh"], "7743f2a608a4eb6e80d8527f": ["bj5yR0ZbQJIZqaX2", "nUmOi/P09axW1XlFse8gGrfS31VjO9S3KdfZqcPzrsAjepaFiQ0UiOd2KOIUkuKu"]};
 function b64u8(s) { var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
 function hexOf(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (x) { return (x < 16 ? '0' : '') + x.toString(16); }).join(''); }
 function aliasEmail(user) {
   var n = String(user || '').trim().toLowerCase().replace(/\s+/g, ''), S = window.crypto && window.crypto.subtle, te = new TextEncoder();
-  if (!/^[a-z][a-z0-9_.-]{2,30}$/.test(n) || !S) return Promise.resolve('');
+  if (!/^[a-z0-9][a-z0-9_.-]{2,30}$/.test(n) || !S) return Promise.resolve('');
   return S.digest('SHA-256', te.encode('eg6-alias-id|' + n)).then(function (h) {
     var rec = ALIASES[hexOf(h).slice(0, 24)]; if (!rec) return '';
     return S.importKey('raw', te.encode(n), 'PBKDF2', false, ['deriveKey']).then(function (base) {
@@ -52,7 +52,8 @@ function aliasEmail(user) {
       .then(function (pt) { return new TextDecoder().decode(pt); });
   }).catch(function () { return ''; });
 }
-function resolveEmail(user) { var e = emailOf(user); return e ? Promise.resolve(e) : aliasEmail(user); }
+// ชื่อผู้ใช้ครูก่อน (รวมเลขครู 99900/99901 ซึ่งไม่มีบัญชีนักเรียน) แล้วจึงเลขประจำตัวนักเรียน/อีเมล
+function resolveEmail(user) { if (String(user || '').indexOf('@') > 0) return Promise.resolve(emailOf(user)); return aliasEmail(user).then(function (a) { return a || emailOf(user); }); }
 function sidOfEmail(email) { var m = String(email || '').toLowerCase().match(/^(\d{3,8})@(.+)$/); return m && m[2] === DOMAIN ? m[1] : ''; }
 function profileOf(user) {
   return timeout(M.fs.getDoc(M.fs.doc(db, 'users', user.uid)), 15000).then(function (s) {
