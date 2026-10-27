@@ -1,0 +1,98 @@
+rules_version = '2';
+// Exam Gym ม.6 · โรงเรียนปิยมิตรวิทยา ฝ่ายมัธยม · Firestore security rules
+// - users/{uid}   : profile (admin-created only). Owner reads own; teachers read all.
+//                   Owner may ONLY flip mustChange true→false (after updatePassword) + stamp pwChangedAt.
+// - roles/{uid}   : {teacher:true} (admin-created only) → teacher read access.
+// - results/{uid_eid} : one answer/mock event, immutable, owner-created, owner/teacher read.
+// - sessions/{uid_sessionId} : active-time summary, owner create/update, owner/teacher read.
+// Anything else: denied. Accounts that sign up via the public API key have no users doc → can do nothing.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function userPath(uid) { return /databases/$(database)/documents/users/$(uid); }
+    function profile() { return get(userPath(me())).data; }
+    function isTeacher() {
+      return signedIn() && (request.auth.token.get('role', '') == 'teacher'
+        || exists(/databases/$(database)/documents/roles/$(me())));
+    }
+    // signed in, has an admin-created profile, and already set own password
+    function ready() { return signedIn() && exists(userPath(me())) && profile().mustChange == false; }
+    function str(v, max) { return v is string && v.size() <= max; }
+    function int(v, lo, hi) { return v is int && v >= lo && v <= hi; }
+    function numIn(v, lo, hi) { return (v is int || v is float) && v >= lo && v <= hi; }
+    function idOk(v) { return v is string && v.matches('^[A-Za-z0-9_:.-]{6,80}$'); }
+
+    match /users/{uid} {
+      allow get: if signedIn() && (me() == uid || isTeacher());
+      allow list: if isTeacher();
+      allow update: if signedIn() && me() == uid
+        && resource.data.mustChange == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mustChange', 'pwChangedAt'])
+        && request.resource.data.mustChange == false
+        && request.resource.data.pwChangedAt == request.time;
+      allow create, delete: if false;
+    }
+
+    match /roles/{uid} {
+      allow get: if signedIn() && me() == uid;
+      allow list, write: if false;
+    }
+
+    function answerOk(d) {
+      return d.keys().hasOnly(['type','eid','uid','sid','room','sessionId','subject','mode','set','itemId','sara','topic','attempt','chosen','correct','sec','len','ts','version','savedAt'])
+        && d.keys().hasAll(['type','eid','uid','sid','itemId','mode','savedAt'])
+        && d.type == 'answer'
+        && str(d.itemId, 20) && d.mode in ['practice', 'review', 'mock']
+        && (!('subject' in d) || str(d.subject, 20)) && (!('set' in d) || str(d.set, 20))
+        && (!('sessionId' in d) || str(d.sessionId, 80)) && (!('topic' in d) || str(d.topic, 10))
+        && (!('sara' in d) || int(d.sara, 1, 5)) && (!('attempt' in d) || int(d.attempt, 1, 999))
+        && (!('chosen' in d) || d.chosen == '' || int(d.chosen, 1, 5))
+        && (!('correct' in d) || d.correct is bool) && (!('sec' in d) || numIn(d.sec, 0, 3600))
+        && (!('len' in d) || int(d.len, 0, 100000)) && (!('ts' in d) || d.ts is int)
+        && (!('version' in d) || str(d.version, 60));
+    }
+    function mockOk(d) {
+      return d.keys().hasOnly(['type','eid','uid','sid','room','set','score','total','bySara','usedSec','timeout','answered','ts','version','savedAt'])
+        && d.keys().hasAll(['type','eid','uid','sid','set','score','total','savedAt'])
+        && d.type == 'mock' && str(d.set, 20)
+        && int(d.total, 1, 200) && numIn(d.score, 0, d.total)
+        && (!('bySara' in d) || (d.bySara is map && d.bySara.size() <= 5))
+        && (!('usedSec' in d) || numIn(d.usedSec, 0, 21600)) && (!('timeout' in d) || d.timeout is bool)
+        && (!('answered' in d) || int(d.answered, 0, 200)) && (!('ts' in d) || d.ts is int)
+        && (!('version' in d) || str(d.version, 60));
+    }
+
+    match /results/{rid} {
+      allow get: if signedIn() && (resource.data.uid == me() || isTeacher());
+      allow list: if signedIn() && (resource.data.uid == me() || isTeacher());
+      allow create: if ready()
+        && request.resource.data.uid == me()
+        && idOk(request.resource.data.eid)
+        && rid == me() + '_' + request.resource.data.eid
+        && request.resource.data.sid == profile().sid
+        && request.resource.data.get('room', profile().room) == profile().room
+        && request.resource.data.savedAt == request.time
+        && (answerOk(request.resource.data) || mockOk(request.resource.data));
+      allow update, delete: if false;
+    }
+
+    function sessionOk(d, sid) {
+      return d.keys().hasOnly(['uid','sid','room','sessionId','startedAt','activeSec','items','ua','version','updatedAt'])
+        && d.uid == me() && d.sid == profile().sid && d.get('room', profile().room) == profile().room
+        && idOk(d.sessionId) && sid == me() + '_' + d.sessionId
+        && int(d.activeSec, 0, 14400) && int(d.items, 0, 5000)
+        && (!('startedAt' in d) || d.startedAt is int)
+        && (!('ua' in d) || str(d.ua, 80)) && (!('version' in d) || str(d.version, 60))
+        && d.updatedAt == request.time;
+    }
+    match /sessions/{sid} {
+      allow get, list: if signedIn() && (resource.data.uid == me() || isTeacher());
+      allow create: if ready() && sessionOk(request.resource.data, sid);
+      allow update: if ready() && resource.data.uid == me() && sessionOk(request.resource.data, sid);
+      allow delete: if false;
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

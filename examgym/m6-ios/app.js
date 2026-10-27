@@ -4,6 +4,9 @@
 var CFG = window.EXAMGYM_CONFIG || {}, BANK = window.SOC_BANK;
 var SAVE_URL = String(CFG.SAVE_URL || '').trim();
 var BACKEND = /^https?:\/\//.test(SAVE_URL) && !/PASTE/i.test(SAVE_URL);
+// Firebase (AUTH_PROVIDER:'firebase' ใน config.js): เข้าสู่ระบบด้วย Firebase Auth · บันทึกผลลง Firestore และส่งต่อเข้า Google Sheet (Apps Script) เหมือนเดิม
+var FB = window.EG_FB && window.EG_FB.on ? window.EG_FB : null;
+var SHEET = BACKEND; if (FB) BACKEND = true;
 var VERSION = CFG.VERSION || 'examgym-m6';
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var app = $('#app');
@@ -71,17 +74,18 @@ function updSync() {
   if (!student) { el.hidden = true; return; }
   el.hidden = false;
   if (student.preview || !BACKEND) { el.className = 'sync prev'; el.textContent = 'โหมดตัวอย่าง · ไม่บันทึกผล'; return; }
-  var n = Q.list().filter(function (x) { return x.stu === pkey() && x.type !== 'session'; }).length;
+  var n = Q.list().filter(function (x) { return x.stu === pkey() && x.type !== 'session' && !(student.fb && x.fs); }).length;
   if (Q.blocked) { el.className = 'sync off'; el.textContent = 'บันทึกไม่ได้ · ติดต่อครูออม'; }
   else if (!navigator.onLine || Q.state === 'off') { el.className = 'sync off'; el.textContent = 'ออฟไลน์ · เก็บไว้ในเครื่อง ' + n + ' รายการ'; }
   else if (n) { el.className = 'sync wait'; el.textContent = 'กำลังส่ง ' + n + ' รายการ…'; }
   else { el.className = 'sync ok'; el.textContent = 'บันทึกแล้ว ✓'; }
 }
 function stuPayload() { return {room: student.room, name: student.name, no: student.no, sid: student.sid || '', code: student.code || ''}; }
-function relogin(msg) { student = null; ls('student', null); Q.blocked = ''; AUTH_FLASH = msg || 'กรุณาเข้าสู่ระบบอีกครั้ง'; go('#/register'); }
+function relogin(msg) { if (FB && student && student.fb) FB.signOut(); student = null; ls('student', null); Q.blocked = ''; AUTH_FLASH = msg || 'กรุณาเข้าสู่ระบบอีกครั้ง'; go('#/register'); }
 var AUTH_FLASH = '';
 function flush(force) {
-  if (!BACKEND || !student || student.preview || Q.busy || Q.blocked) return Promise.resolve();
+  if (FB && student && student.fb) return flushFB(force);
+  if (!SHEET || !student || student.preview || Q.busy || Q.blocked || student.fb) return Promise.resolve();
   var pk = pkey(), mine = Q.list().filter(function (x) { return x.stu === pk; });
   if (!mine.length) { Q.state = 'ok'; updSync(); return Promise.resolve(); }
   if (!force && Date.now() - Q.last < Math.min(120000, 4000 * Math.pow(2, Q.fails))) return Promise.resolve();
@@ -199,10 +203,12 @@ function pLanding() {
 function logout() {
   sendSession();
   if (student && student.token && BACKEND) { var tk = student.token; flush(true).then(function () { try { fetch(SAVE_URL, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({action: 'logout', token: tk})}); } catch (e) {} }); }
+  if (student && student.fb && FB) { flush(true).then(function () { return FB.signOut(); }); }
   student = null; ls('student', null); go('#/register');
 }
 
 function pRegister() {
+  if (FB) return pLoginFB();
   if (!BACKEND) return pRegisterV1();
   view('<div class="loading">กำลังโหลด…</div>');
   jsonp({action: 'health'}).then(function (d) { if (d && d.auth >= 5) pLogin5(); else if (d && d.auth === 4) pLogin4(); else if (d && d.auth === 3) pLogin3(); else if (d && d.auth === 2) pAuth(d); else pRegisterV1(); })
@@ -614,6 +620,116 @@ function pSetPw5(o) {
     }).catch(function (e) { busy(false); err(e && e.message === 'nocrypto' ? NOCRYPTO : NETERR); });
   };
 }
+// ---------- เข้าสู่ระบบด้วย Firebase (AUTH_PROVIDER:'firebase') · เลขประจำตัว (ครู: อีเมล) + รหัสผ่าน · ครั้งแรกใช้รหัสที่ครูแจ้ง แล้วบังคับตั้งรหัสใหม่ ----------
+function fbLoggedIn(p) {
+  student = {room: p.room, no: p.no == null ? '' : p.no, name: p.name, role: p.role, sid: p.sid || '', uid: p.uid, fb: 1, v: 5, at: Date.now()};
+  ls('student', student); Q.blocked = ''; go('#/subjects'); flush(true);
+}
+function pLoginFB(flash) {
+  view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2 class="ah">เข้าสู่ระบบ</h2>' +
+    '<form class="auth" id="af" autocomplete="on" novalidate>' +
+    '<div class="group fields"><label class="cell"><span>เลขประจำตัวนักเรียน / อีเมลครู</span><input id="un" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="120" enterkeyhint="next" placeholder="เลข 5 หลัก"></label>' +
+    '<label class="cell"><span>รหัสผ่าน</span><input id="pw" name="password" type="password" autocomplete="current-password" autocapitalize="off" maxlength="64" enterkeyhint="go" placeholder="ครั้งแรก: รหัสที่ครูแจ้ง"></label></div>' +
+    '<p class="ahint">เข้าครั้งแรกใช้รหัสที่ครูแจ้ง แล้วตั้งรหัสใหม่ของตัวเอง · ครั้งต่อไปใช้เลขประจำตัว + รหัสใหม่ · ลืมรหัสผ่าน แจ้งครูออม</p>' +
+    '<p class="aerr" id="msg" role="alert" aria-live="polite"></p>' +
+    '<button class="btn pri big" id="go" type="submit">เข้าสู่ระบบ</button>' +
+    '<p class="consent">เข้าสู่ระบบ = ยินยอมให้ส่งผลฝึกถึงครูออม <button type="button" class="xi" data-about="privacy" aria-label="ความเป็นส่วนตัว">ⓘ</button></p></form>');
+  var un = $('#un'), pw = $('#pw'), go_ = $('#go'), msg = $('#msg');
+  function err(t) { msg.textContent = t || ''; }
+  function busy(on) { go_.disabled = !!on; go_.textContent = on ? 'กำลังตรวจ…' : 'เข้าสู่ระบบ'; }
+  err(flash || AUTH_FLASH); AUTH_FLASH = '';
+  [un, pw].forEach(function (x) { x.addEventListener('input', function () { err(''); }); });
+  setTimeout(function () { try { un.focus({preventScroll: true}); } catch (e) {} }, 60);
+  FB.load().catch(function () {}); // โหลด SDK ล่วงหน้าระหว่างพิมพ์
+  $('#af').onsubmit = function (e) {
+    e.preventDefault(); if (go_.disabled) return;
+    var u = un.value.replace(/\s+/g, '').trim(), p = pw.value;
+    if (!u) { err('พิมพ์เลขประจำตัวนักเรียน (ครู: อีเมล)'); un.focus(); return; }
+    if (!p) { err('พิมพ์รหัสผ่าน (ครั้งแรก: รหัสที่ครูแจ้ง)'); pw.focus(); return; }
+    busy(true);
+    FB.signIn(u, p).then(function (prof) {
+      pw.value = '';
+      if (prof.mustChange) { pSetPwFB({forced: true, first: p, prof: prof, ident: /^\d+$/.test(u) ? u : (prof.sid || '')}); return; }
+      fbLoggedIn(prof);
+    }).catch(function (e2) { busy(false); pw.value = ''; err(FB.message(e2)); pw.focus(); });
+  };
+}
+// o.forced = เข้าครั้งแรก ต้องตั้งรหัสใหม่ (o.first = รหัสครั้งแรกที่เพิ่งพิมพ์ · อยู่ในหน่วยความจำเท่านั้น) · o.change = เปลี่ยนเองจากผลของฉัน
+function pSetPwFB(o) {
+  var forced = !!o.forced, title = forced ? 'ตั้งรหัสผ่านใหม่' : 'เปลี่ยนรหัสผ่าน';
+  view('<div class="crumb"><a href="' + (forced ? '#/register' : '#/soc/me') + '" id="back">← ' + (forced ? 'ยกเลิก' : 'ผลของฉัน') + '</a></div><h2 class="ah">' + title + '</h2>' +
+    (forced ? '<div class="notice">สวัสดี <b>' + esc(o.prof.name || '') + '</b> · เข้าครั้งแรก ต้องตั้งรหัสผ่านของตัวเองก่อนใช้งาน · ครั้งต่อไปใช้เลขประจำตัว + รหัสใหม่นี้ (รหัสครั้งแรกจะใช้ไม่ได้อีก)</div>' : '') +
+    '<form class="auth" id="sf" novalidate><input type="text" name="username" autocomplete="username" value="' + esc(o.ident || '') + '" hidden>' +
+    '<div class="group fields">' + (forced ? '' : pwField('op', 'รหัสผ่านเดิม', 'รหัสผ่านที่ใช้อยู่', 'current-password')) +
+    pwField('np', 'รหัสผ่านใหม่', 'อย่างน้อย 6 ตัว') + pwField('np2', 'ยืนยันรหัสผ่านใหม่', 'พิมพ์ซ้ำอีกครั้ง') + '</div>' +
+    '<p class="ahint">อย่างน้อย 6 ตัว · ห้ามซ้ำรหัสครั้งแรก/รหัสเดิม หรือเลขประจำตัว · จดไว้ให้ดี ลืมแล้วต้องให้ครูออมรีเซ็ต</p>' +
+    '<p class="aerr" id="msg" role="alert" aria-live="polite"></p>' +
+    '<button class="btn pri big" id="go" type="submit">บันทึกรหัสผ่านใหม่</button></form>');
+  var np = $('#np'), np2 = $('#np2'), op = $('#op'), go_ = $('#go'), msg = $('#msg');
+  function err(t) { msg.textContent = t || ''; }
+  function busy(on) { go_.disabled = !!on; go_.textContent = on ? 'กำลังบันทึก…' : 'บันทึกรหัสผ่านใหม่'; }
+  [np, np2, op].forEach(function (x) { if (x) x.addEventListener('input', function () { err(''); }); });
+  if (forced) $('#back').onclick = function (e) { e.preventDefault(); o.first = ''; FB.signOut().then(function () { pLoginFB(); }); };
+  setTimeout(function () { try { (op || np).focus({preventScroll: true}); } catch (e) {} }, 60);
+  $('#sf').onsubmit = function (e) {
+    e.preventDefault(); if (go_.disabled) return;
+    var p = np.value, p2 = np2.value, old = forced ? o.first : (op ? op.value : '');
+    if (!forced && !old) { err('พิมพ์รหัสผ่านเดิม'); op.focus(); return; }
+    var bad = p.length < 6 ? 'รหัสใหม่ต้องยาวอย่างน้อย 6 ตัว' : p !== p2 ? 'รหัสผ่านทั้งสองช่องไม่ตรงกัน' : p === old ? (forced ? 'ห้ามใช้รหัสครั้งแรกเป็นรหัสใหม่' : 'รหัสใหม่ต้องไม่ซ้ำรหัสเดิม') : (o.ident && p === o.ident) || (student && student.sid && p === student.sid) ? 'ห้ามใช้เลขประจำตัวเป็นรหัสผ่าน' : '';
+    if (bad) { err(bad); (bad.indexOf('ไม่ตรง') >= 0 ? np2 : np).focus(); return; }
+    busy(true);
+    var sid = (o.prof && o.prof.sid) || (student && student.sid) || '';
+    (forced ? FB.setFirstPassword(p, old, sid) : FB.changePassword(old, p, sid)).then(function (prof) {
+      np.value = np2.value = ''; if (op) op.value = ''; o.first = '';
+      if (forced) fbLoggedIn(prof);
+      else { ME_FLASH = 'เปลี่ยนรหัสผ่านแล้ว ✓ ครั้งต่อไปใช้รหัสใหม่นี้'; go('#/soc/me'); }
+    }).catch(function (e2) {
+      busy(false);
+      if (e2 && e2.code === 'auth/requires-recent-login') { relogin(FB.message(e2)); return; }
+      if (!forced && e2 && (e2.code === 'auth/invalid-credential' || e2.code === 'auth/wrong-password')) { err('รหัสผ่านเดิมไม่ถูกต้อง'); op.value = ''; op.focus(); return; }
+      err(FB.message(e2));
+    });
+  };
+}
+// ส่งผล: 1) เขียนลง Firestore (ทันที) 2) ส่งต่อเข้า Google Sheet ผ่าน Apps Script ด้วย Firebase ID token · ลบออกจากคิวเมื่อ Sheet รับแล้ว
+function flushFB(force) {
+  if (!student || student.preview || Q.busy) return Promise.resolve();
+  var pk = pkey(), mine = Q.list().filter(function (x) { return x.stu === pk; });
+  if (!mine.length) { Q.state = 'ok'; updSync(); return Promise.resolve(); }
+  if (!force && Date.now() - Q.last < Math.min(120000, 4000 * Math.pow(2, Q.fails))) return Promise.resolve();
+  Q.busy = true; Q.last = Date.now();
+  var batch = mine.slice(0, 40), toFs = batch.filter(function (x) { return !x.fs; });
+  function strip(x) { var y = {}; for (var k in x) if (k !== 'stu' && k !== 'fs') y[k] = x[k]; return y; }
+  function mark(eids) { var set = {}; eids.forEach(function (e) { set[e] = 1; }); Q.put(Q.list().map(function (x) { if (x.stu === pk && set[x.eid]) x.fs = 1; return x; })); }
+  function drop(list) { var set = {}; list.forEach(function (e) { set[e] = 1; }); Q.put(Q.list().filter(function (x) { return !(x.stu === pk && set[x.eid]); })); }
+  var fsStep = toFs.length ? FB.saveEvents(toFs.map(strip), student, VERSION).then(function (done) { mark(done); return done.length === toFs.length; }) : Promise.resolve(true);
+  return fsStep.then(function (allFs) {
+    if (!SHEET || CFG.FIREBASE && CFG.FIREBASE.SHEET_MIRROR === false) { drop(Q.list().filter(function (x) { return x.stu === pk && x.fs; }).map(function (x) { return x.eid; })); Q.fails = allFs ? 0 : Q.fails + 1; Q.state = 'ok'; return; }
+    var send = Q.list().filter(function (x) { return x.stu === pk && x.fs; }).slice(0, 40);
+    if (!send.length) { Q.fails++; return; }
+    if (Q.sheetWait && Date.now() - Q.sheetWait < 300000 && !force) { Q.state = 'ok'; return; }
+    return FB.idToken().then(function (tok) {
+      var body = JSON.stringify({action: 'events', api: 2, version: VERSION, fbtoken: tok, events: send.map(strip)});
+      var ids = send.map(function (x) { return x.eid; });
+      return fetch(SAVE_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: body, redirect: 'follow'})
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d && d.ok) { drop((d.saved || []).concat(d.dup || [], d.bad || [])); Q.fails = 0; Q.state = 'ok'; Q.sheetWait = 0; }
+          else if (d && (d.error === 'need login' || d.error === 'not on roster' || d.error === 'bad action')) { Q.sheetWait = Date.now(); Q.state = 'ok'; } // Apps Script ยังไม่รองรับ Firebase · ผลอยู่ใน Firestore แล้ว เก็บคิวไว้ส่ง Sheet ภายหลัง
+          else throw new Error('bad reply');
+        })
+        .catch(function () {
+          if (!navigator.onLine) { Q.fails++; Q.state = 'off'; return; }
+          return fetch(SAVE_URL, {method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: body})
+            .then(function () { return new Promise(function (r) { setTimeout(r, 2500); }); })
+            .then(function () { return jsonp({action: 'ack', eids: ids.filter(function (e, i) { return send[i].type !== 'session'; }).join(',')}); })
+            .then(function (d) { var have = (d && d.have) || []; drop(have.concat(send.filter(function (x) { return x.type === 'session'; }).map(function (x) { return x.eid; }))); Q.fails = have.length ? 0 : Q.fails + 1; Q.state = 'ok'; })
+            .catch(function () { Q.fails++; Q.state = 'off'; });
+        });
+    });
+  }).catch(function (e) { Q.fails++; Q.state = navigator.onLine ? 'ok' : 'off'; if (e && (e.code === 'auth/no-current-user' || e.code === 'auth/user-token-expired')) relogin('กรุณาเข้าสู่ระบบอีกครั้ง'); })
+    .then(function () { Q.busy = false; updSync(); var more = Q.list().some(function (x) { return x.stu === pkey() && !x.fs; }); if (student && more && Q.fails === 0) setTimeout(function () { flush(true); }, 300); });
+}
 function socStats() {
   var p = prog(), done = 0, ok = 0, by = {};
   BANK.items.forEach(function (it) { var x = p.items[it.id]; var b = by[it.sara] = by[it.sara] || {n: 0, done: 0, ok: 0}; b.n++; if (x) { done++; b.done++; if (x.ok) { ok++; b.ok++; } } });
@@ -793,14 +909,14 @@ var ME_FLASH = '';
 function pMe() {
   var s = socStats(), p = s.p, topics = {};
   BANK.items.forEach(function (it) { var t = topics[it.topic] = topics[it.topic] || {n: 0, d: 0, o: 0}; t.n++; var x = p.items[it.id]; if (x) { t.d++; if (x.ok) t.o++; } });
-  var q = Q.list().filter(function (x) { return x.stu === pkey() && x.type !== 'session'; }).length;
+  var q = Q.list().filter(function (x) { return x.stu === pkey() && x.type !== 'session' && !(student.fb && x.fs); }).length;
   view('<div class="crumb"><a href="#/soc">← สังคมศึกษา</a></div><h2>ผลของฉัน · สังคมศึกษา</h2>' + (ME_FLASH ? '<div class="notice" id="meflash" role="status">' + esc(ME_FLASH) + '</div>' : '') + '<p class="muted small">ข้อมูลในเครื่องนี้ · ' + (student.preview || !BACKEND ? 'โหมดตัวอย่าง ไม่ได้ส่งไปที่ครู' : (q ? 'รอส่งให้ครู ' + q + ' รายการ (ส่งอัตโนมัติเมื่อออนไลน์)' : 'ส่งให้ครูออมครบแล้ว ✓')) + '</p>' +
     '<div class="stats"><div class="stat"><b>' + s.done + '/100</b><span>ข้อที่ทำแล้ว</span></div><div class="stat"><b>' + pct(s.ok, s.done) + '%</b><span>ถูก (ผลล่าสุดของแต่ละข้อ)</span></div><div class="stat"><b>' + mins(p.active) + '</b><span>เวลาฝึกจริง</span></div><div class="stat"><b>' + p.mocks.length + '</b><span>ครั้งที่สอบเสมือนจริง</span></div></div>' +
     '<div class="card"><table class="tbl"><tr><th>สาระ / หัวข้อย่อย</th><th class="n">ทำแล้ว</th><th class="n">ถูก</th></tr>' + BANK.saras.map(function (sa) { var b = s.by[sa.id]; return '<tr><td><b>' + sa.id + ' ' + esc(sa.name) + '</b></td><td class="n"><b>' + b.done + '/' + b.n + '</b></td><td class="n"><b>' + (b.done ? pct(b.ok, b.done) + '%' : '–') + '</b></td></tr>' + sa.topics.map(function (t) { var x = topics[t.id]; return x ? '<tr><td class="small" style="padding-left:22px">' + t.id + ' ' + esc(t.name) + '</td><td class="n small">' + x.d + '/' + x.n + '</td><td class="n small">' + (x.d ? pct(x.o, x.d) + '%' : '–') + '</td></tr>' : ''; }).join(''); }).join('') + '</table></div>' +
     '<h3 style="margin-top:22px">ประวัติสอบเสมือนจริง</h3>' + (p.mocks.length ? '<div class="rv">' + p.mocks.slice().reverse().map(function (r) { return '<button data-id="' + r.id + '"><span class="m r">' + pct(r.score, r.total) + '</span><span class="t"><b>' + esc(r.name) + '</b> · ' + r.score + '/' + r.total + ' · ' + thDate(r.at) + '</span></button>'; }).join('') + '</div>' : '<p class="muted">ยังไม่เคยสอบ · <a href="#/soc/mock">ลองสอบเสมือนจริง</a></p>') +
-    '<div class="row" style="margin-top:22px">' + (student.v === 5 && student.token && !student.preview ? '<button class="btn" id="chpw">เปลี่ยนรหัสผ่าน</button>' : '') + '<button class="btn ghost" id="lo">ออกจากระบบ (เปลี่ยนชื่อ)</button></div>');
+    '<div class="row" style="margin-top:22px">' + (student.v === 5 && (student.token || student.fb) && !student.preview ? '<button class="btn" id="chpw">เปลี่ยนรหัสผ่าน</button>' : '') + '<button class="btn ghost" id="lo">ออกจากระบบ (เปลี่ยนชื่อ)</button></div>');
   ME_FLASH = '';
-  if ($('#chpw')) $('#chpw').onclick = function () { pSetPw5({token: student.token}); };
+  if ($('#chpw')) $('#chpw').onclick = function () { if (student.fb) pSetPwFB({change: true, ident: student.sid || ''}); else pSetPw5({token: student.token}); };
   Array.prototype.forEach.call(document.querySelectorAll('[data-id]'), function (b) { b.onclick = function () { go('#/soc/mock/result/' + b.dataset.id); }; });
   $('#lo').onclick = function () { confirmBox('<h3>ออกจากระบบ?</h3><p>ข้อมูลที่บันทึกแล้วยังอยู่ครบ</p>', 'ออกจากระบบ', logout); };
 }
@@ -835,6 +951,14 @@ function route() {
 window.addEventListener('hashchange', route);
 if (student && !student.preview && !BACKEND) { student = null; ls('student', null); }
 if (student && student.preview && BACKEND) { student = null; ls('student', null); }
+// สลับระบบเข้าสู่ระบบ: ผู้ที่เข้าด้วยระบบเดิม (token Apps Script) ต้องเข้าใหม่ด้วย Firebase และกลับกันเมื่อ rollback
+if (student && !student.preview && (FB ? !student.fb : student.fb)) { student = null; ls('student', null); AUTH_FLASH = FB ? 'ระบบเข้าสู่ระบบอัปเดตแล้ว กรุณาเข้าสู่ระบบอีกครั้ง' : ''; }
+if (FB && student && student.fb) FB.current().then(function (p) {
+  if (!student || !student.fb) return;
+  if (!p || p.uid !== student.uid) return relogin('กรุณาเข้าสู่ระบบอีกครั้ง');
+  if (p.mustChange) return relogin('กรุณาเข้าสู่ระบบด้วยรหัสครั้งแรก แล้วตั้งรหัสผ่านของตัวเอง');
+  flush(true);
+}).catch(function (e) { if (e && e.code === 'no-profile') relogin(FB.message(e)); });
 route(); flush(true);
-window.__EG = {Q: Q, ACT: ACT, flush: flush, prog: prog, BACKEND: BACKEND};
+window.__EG = {Q: Q, ACT: ACT, flush: flush, prog: prog, BACKEND: BACKEND, FB: !!FB, student: function () { return student; }};
 })();
