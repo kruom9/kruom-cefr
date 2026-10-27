@@ -784,7 +784,7 @@ function quotaText(q) { var v = BANK.saras.map(function (sa) { return q[sa.id]; 
 function examLen() { var R = realMocks()[0] || BANK.mocks[0], q = mixQuota(), n = 0; for (var k in q) n += q[k]; return {n: R && R.ids.length ? R.ids.length : n, min: (R || {}).min || 90}; }
 function pSubjects() {
   var live = SUBJECTS.filter(function (x) { return x.live; });
-  view('<h2>เลือกวิชา</h2><p class="muted">สวัสดี' + (student.preview ? 'ครับ/ค่ะ (โหมดตัวอย่าง)' : ' ' + esc(student.name)) + ' · เปิดแล้ว ' + live.length + ' วิชา วิชาอื่นทยอยเปิดเร็ว ๆ นี้</p><div class="subj">' +
+  view('<h2>เลือกวิชา</h2><p class="muted">สวัสดี' + (student.preview ? 'ครับ/ค่ะ (โหมดตัวอย่าง)' : ' ' + esc(student.name)) + ' · เปิดแล้ว ' + live.length + ' วิชา วิชาอื่นทยอยเปิดเร็ว ๆ นี้</p><div class="subj">' + (isTeacher() ? '<a class="s on dash-link" href="#/admin" id="dashLink"><span class="tag live">ครู</span><b>แดชบอร์ดครู</b><small>ภาพรวมการใช้งาน ม.6 · รายห้อง · รายคน · รายวิชา</small></a>' : '') +
     live.concat(SUBJECTS.filter(function (x) { return !x.live; })).map(function (x) {
       if (x.live) { var s = statsOf(x.id); return '<a class="s on" href="#/' + x.id + '" data-sub="' + x.id + '"><span class="tag live">เปิดแล้ว</span><b>' + esc(x.name) + '</b><small>' + esc(x.exam) + ' · ' + s.n + ' ข้อจริง + สอบเสมือนจริง</small><div class="bar" style="margin-top:auto"><i style="width:' + pct(s.done, s.n) + '%"></i></div><small>ทำแล้ว ' + s.done + '/' + s.n + ' ข้อ</small></a>'; }
       return '<div class="s off" aria-disabled="true"><span class="tag">เร็ว ๆ นี้</span><b>' + esc(x.name) + '</b><small>' + esc(x.exam) + '</small></div>';
@@ -989,6 +989,26 @@ function pSources() {
   }).join(''));
 }
 
+// ---------- แดชบอร์ดครู (โหลด dash-agg.js / dash.js / dash.css เฉพาะเมื่อครูเปิด) ----------
+function isTeacher() { return !!(student && !student.preview && student.role === 'teacher' && student.token); }
+var DASH = null;
+function loadDash() {
+  if (DASH) return DASH;
+  var v = '?v=' + encodeURIComponent(VERSION), css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'dash.css' + v; document.head.appendChild(css);
+  var js = function (src) { return new Promise(function (res, rej) { var el = document.createElement('script'); el.src = src + v; el.onload = res; el.onerror = function () { el.remove(); rej(new Error(src)); }; document.head.appendChild(el); }); };
+  DASH = js('dash-agg.js').then(function () { return js('dash.js'); }).catch(function (e) { DASH = null; throw e; });
+  return DASH;
+}
+function pAdmin(h) {
+  if (!isTeacher()) { view('<div class="crumb"><a href="#/subjects">← เลือกวิชา</a></div><h2>แดชบอร์ดครู</h2><div class="notice err" id="dashDenied">หน้านี้สำหรับครูเท่านั้น</div>'); return; }
+  if (!BACKEND) { view('<div class="crumb"><a href="#/subjects">← เลือกวิชา</a></div><h2>แดชบอร์ดครู</h2><div class="notice err">ยังไม่ได้เชื่อมต่อระบบบันทึกผล</div>'); return; }
+  if (!window.EGDash) view('<div class="loading">กำลังโหลดแดชบอร์ด…</div>');
+  loadDash().then(function () {
+    if (location.hash.replace(/^#/, '') !== h) return;
+    window.EGDash.route(h, {student: student, saveUrl: SAVE_URL, view: view, go: go, subjects: SUBJECTS});
+  }, function () { view('<h2>แดชบอร์ดครู</h2><div class="notice err">โหลดแดชบอร์ดไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่</div>'); });
+}
+
 // ---------- router ----------
 var SUBPAGE = [
   [/^$/, function () { pSoc(); }],
@@ -1004,11 +1024,13 @@ var SUBPAGE = [
 function route() {
   var h = location.hash.replace(/^#/, '') || '/', m;
   $('#modal').hidden = true;
+  document.body.classList.toggle('dash', /^\/admin(\/|$)/.test(h));
   if (h === '/' || h === '') return pLanding();
   if (h === '/register') return pRegister();
   if (h === '/sources') return pSources();
   if (!student) return go('#/register');
   if (h === '/subjects') return pSubjects();
+  if (/^\/admin(\/|$)/.test(h)) return pAdmin(h);
   if ((m = h.match(/^\/([a-z0-9]+)(\/.*)?$/)) && subj(m[1])) {
     var x = subj(m[1]), rest = m[2] || '';
     if (!x.live) { if (!LOADED) { view('<div class="loading">กำลังโหลด…</div>'); return; } return go('#/subjects'); }

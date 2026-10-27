@@ -1,0 +1,91 @@
+/* Exam Gym ม.6 · แดชบอร์ดครู (โหลดเฉพาะหน้า #/admin) · ใช้ตัวแปรสีเดียวกับ ios.css (สว่าง/มืดตามเครื่อง) */
+body.dash #app,body.dash .whobar{max-width:1120px}
+.dash h2{margin-bottom:4px}
+.dash .section h3{margin-top:0}
+.dash .notice.dash-ex{border-left-color:var(--tint);margin:8px 0 12px;font-weight:600}
+.linkbtn{border:0;background:none;color:var(--tint);font:inherit;padding:0;cursor:pointer;text-decoration:underline}
+.dstats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dstats .stat b small{font-size:15px;color:var(--label2);font-weight:600}
+.dstats .stat span small{font-size:12.5px;color:var(--label3)}
+@media (min-width:760px){.dstats{grid-template-columns:repeat(3,minmax(0,1fr))}.dstats.sm{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (min-width:1040px){.dstats:not(.sm){grid-template-columns:repeat(6,minmax(0,1fr))}}
+.dcard{padding:12px 12px 10px}
+.dscroll{overflow-x:auto}
+.dchart{width:100%;height:auto;display:block}
+.dchart .g{stroke:var(--sep);stroke-width:.6}
+.dchart .ax{fill:var(--label2);font-size:11px;font-family:var(--font)}
+.dchart .ax.p{fill:var(--green-t)}
+.dchart .b{fill:var(--tint);opacity:.82}
+.dchart .ln{fill:none;stroke:var(--green);stroke-width:2.2;stroke-linejoin:round}
+.dchart .ln.m{stroke:var(--tint)}
+.dchart .dt{fill:var(--green)}
+.dchart .mp{fill:var(--tint);stroke:var(--cell);stroke-width:2}
+.dchart .sp{fill:var(--label3)}
+.dlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--label2);margin:6px 4px 0}
+.dlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.dlegend i.b,.dlegend i.mp{background:var(--tint)}.dlegend i.ln{background:var(--green);height:3px;vertical-align:3px}.dlegend i.sp{background:var(--label3);border-radius:50%}
+.dlegend i.mp{border-radius:50%}
+.dgrid2{display:grid;gap:0 16px}
+@media (min-width:900px){.dgrid2{grid-template-columns:1fr 1.25fr}}
+.dash .tbl td,.dash .tbl th{white-space:nowrap}
+.dash .tbl td:first-child{white-space:normal}
+.dtools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}
+.dtools input,.dtools select{font:inherit;font-size:16px;min-height:44px;border-radius:10px;border:0;background:var(--cell);color:var(--label);padding:8px 12px;box-shadow:var(--shadow)}
+.dtools input{flex:1 1 220px}
+.dtools select{flex:0 1 auto;max-width:100%}
+.drank .cell{color:inherit;text-decoration:none;gap:10px;min-height:60px}
+.drank .cell:hover{background:var(--fill);text-decoration:none}
+.drank .cell.idle{opacity:.62}
+.drank .rk{flex:0 0 28px;text-align:right;font-weight:700;color:var(--label2);font-variant-numeric:tabular-nums}
+.av{flex:0 0 38px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--tint-soft);color:var(--tint);font-weight:700;font-size:15px}
+.av.big{width:128px;height:128px;flex-basis:128px;font-size:40px}
+.drank .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.drank .nm b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drank .nm small,.drank .nums small{font-size:13px;color:var(--label2)}
+.drank .nums{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+.drank .nums b{font-size:18px;font-variant-numeric:tabular-nums}
+.drank .nums small.on{color:var(--green-t)}
+.dprof{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.dphoto{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;max-width:220px}
+.dph img{width:128px;height:128px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 0 .5px var(--sep)}
+.dph-b{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.btn.small{min-height:40px;padding:6px 12px;font-size:15px;border-radius:10px;cursor:pointer}
+.dphoto p{text-align:center;margin:0}
+.dinfo{flex:1 1 320px;min-width:0}
+.dname{font-size:24px;font-weight:700;line-height:1.3}
+.dmeta{display:flex;gap:14px;flex-wrap:wrap;color:var(--label2);margin:4px 0 0}
+.dmeta b{color:var(--label)}
+.dsubs{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:640px){.dsubs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1000px){.dsubs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card.dsub{display:block;color:inherit;text-decoration:none;margin:0!important}
+.card.dsub:hover{text-decoration:none;box-shadow:0 0 0 2px var(--tint-soft)}
+.dsub-h{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.dsub-h b{font-size:18px}
+.dsub-n{margin:8px 0 6px;display:flex;align-items:baseline;gap:8px}
+.dsub-n span{font-size:26px;font-weight:700}
+.dsub-n small,.dsub-m small{color:var(--label2);font-size:13px}
+.dsub-m{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.dsub-m span{display:flex;flex-direction:column}
+.dtopics{display:grid;gap:12px}
+@media (min-width:900px){.dtopics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.card.dsara{padding:12px 0 0;margin:0!important}
+.card.dsara h4{margin:0 16px 8px;font-size:16px}
+.card.dsara .group{box-shadow:none;border-radius:0 0 var(--r) var(--r)}
+.dt .mk{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700}
+.dt.cov .mk{background:var(--green);color:#fff}
+.dt.unc .mk{background:var(--fill);color:var(--label3)}
+.dt .nm{flex:1;min-width:0;font-size:15px;line-height:1.4}
+.dt .nm small{display:block;color:var(--label2);font-size:12.5px}
+.dt.unc .nm{color:var(--label2)}
+.dt .pc{font-weight:700;font-variant-numeric:tabular-nums;min-width:56px;text-align:right}
+.dt .pc.hi{color:var(--green-t)}.dt .pc.md{color:var(--orange-t)}.dt .pc.lo{color:var(--red-t)}
+.dash .tbl tr.mk td:first-child{border-left:3px solid var(--tint)}
+.subj>.s.dash-link{background:linear-gradient(0deg,var(--tint-soft),var(--tint-soft))}
+
+/* ประวัติ: วันที่/เวลา 2 บรรทัด ไม่ตัดคำ */
+#dHist td.dd, #dHist td.n, #dHist th { white-space: nowrap; }
+#dHist td.du { font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) { #dHist { font-size: 14px; } #dHist td, #dHist th { padding-left: 6px; padding-right: 6px; } }
+/* การ์ดสถิติ: ตัวเลขยาวไม่ล้น */
+.dstat b, .dkpi b { overflow-wrap: anywhere; }
