@@ -677,7 +677,7 @@ function fbLoggedIn(p) {
 function pLoginFB(flash) {
   view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2 class="ah">เข้าสู่ระบบ</h2>' +
     '<form class="auth" id="af" autocomplete="on" novalidate>' +
-    '<div class="group fields"><label class="cell"><span>เลขประจำตัวนักเรียน / อีเมลครู</span><input id="un" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="120" enterkeyhint="next" placeholder="เลข 5 หลัก"></label>' +
+    '<div class="group fields"><label class="cell"><span>เลขประจำตัวนักเรียน / ชื่อผู้ใช้ครู</span><input id="un" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="120" enterkeyhint="next" placeholder="เลข 5 หลัก"></label>' +
     '<label class="cell"><span>รหัสผ่าน</span><input id="pw" name="password" type="password" autocomplete="current-password" autocapitalize="off" maxlength="64" enterkeyhint="go" placeholder="ครั้งแรก: รหัสที่ครูแจ้ง"></label></div>' +
     '<p class="ahint">เข้าครั้งแรกใช้รหัสที่ครูแจ้ง แล้วตั้งรหัสใหม่ของตัวเอง · ครั้งต่อไปใช้เลขประจำตัว + รหัสใหม่ · ลืมรหัสผ่าน แจ้งครูออม</p>' +
     '<p class="aerr" id="msg" role="alert" aria-live="polite"></p>' +
@@ -693,7 +693,7 @@ function pLoginFB(flash) {
   $('#af').onsubmit = function (e) {
     e.preventDefault(); if (go_.disabled) return;
     var u = un.value.replace(/\s+/g, '').trim(), p = pw.value;
-    if (!u) { err('พิมพ์เลขประจำตัวนักเรียน (ครู: อีเมล)'); un.focus(); return; }
+    if (!u) { err('พิมพ์เลขประจำตัวนักเรียน (ครู: ชื่อผู้ใช้)'); un.focus(); return; }
     if (!p) { err('พิมพ์รหัสผ่าน (ครั้งแรก: รหัสที่ครูแจ้ง)'); pw.focus(); return; }
     busy(true);
     FB.signIn(u, p).then(function (prof) {

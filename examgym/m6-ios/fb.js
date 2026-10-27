@@ -1,6 +1,6 @@
 /* Exam Gym ม.6 · Firebase login path (Firebase Auth Email/Password + Firestore)
  * ใช้เมื่อ config.js ตั้ง AUTH_PROVIDER: 'firebase' · ไม่งั้นไฟล์นี้ไม่ทำอะไร (ระบบ Apps Script เดิมทำงานต่อ)
- * นักเรียนพิมพ์เลขประจำตัว → แปลงเป็นอีเมลภายใน <เลข>@<STUDENT_EMAIL_DOMAIN> · ครูใช้อีเมลจริง
+ * นักเรียนพิมพ์เลขประจำตัว → แปลงเป็นอีเมลภายใน <เลข>@<STUDENT_EMAIL_DOMAIN> · ครูใช้ชื่อผู้ใช้ (KRUOM / KRUPANG) หรืออีเมลจริง
  * ไม่มีรหัสผ่านครั้งแรกในไฟล์นี้ (ตรวจ "ห้ามซ้ำรหัสครั้งแรก" จากรหัสที่ผู้ใช้เพิ่งพิมพ์เข้าสู่ระบบ) */
 (function () {
 'use strict';
@@ -36,6 +36,23 @@ function emailOf(user) {
   if (/^\d{3,8}$/.test(u)) return u + '@' + DOMAIN;
   return u.indexOf('@') > 0 ? u : '';
 }
+// ชื่อผู้ใช้ครู (ไม่สนตัวพิมพ์เล็ก/ใหญ่ เช่น KRUPANG = krupang) → อีเมลบัญชี Firebase เดิมของครู (uid/รหัสผ่าน/mustChange เดิมทั้งหมด)
+// เก็บอีเมลแบบเข้ารหัส AES-GCM (กุญแจจาก PBKDF2 ของชื่อผู้ใช้) จึงไม่มีอีเมลจริงอยู่ใน repo · ไม่ใช่ความลับระดับรหัสผ่าน (ผู้รู้ชื่อผู้ใช้ถอดได้)
+var ALIASES = {"89732c93f3a27096743b5649": ["Kjg2CHNyvKuFBeW3", "NXxOW+2Fcs2LcIwbPgQgzU2x5x+KvRNnwtGAbcukndQ="], "8d353c0524a576df328a6b1c": ["rXkePhEBzH8RY+2o", "L1I+HPR8iObgqE87BONmxJ7xpa661vk2ZvvGxGmTbjxolHjid81vw10+VpogWeaE"]};
+function b64u8(s) { var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+function hexOf(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (x) { return (x < 16 ? '0' : '') + x.toString(16); }).join(''); }
+function aliasEmail(user) {
+  var n = String(user || '').trim().toLowerCase().replace(/\s+/g, ''), S = window.crypto && window.crypto.subtle, te = new TextEncoder();
+  if (!/^[a-z][a-z0-9_.-]{2,30}$/.test(n) || !S) return Promise.resolve('');
+  return S.digest('SHA-256', te.encode('eg6-alias-id|' + n)).then(function (h) {
+    var rec = ALIASES[hexOf(h).slice(0, 24)]; if (!rec) return '';
+    return S.importKey('raw', te.encode(n), 'PBKDF2', false, ['deriveKey']).then(function (base) {
+      return S.deriveKey({name: 'PBKDF2', salt: te.encode('eg6-alias-key|' + n), iterations: 100000, hash: 'SHA-256'}, base, {name: 'AES-GCM', length: 256}, false, ['decrypt']);
+    }).then(function (key) { return S.decrypt({name: 'AES-GCM', iv: b64u8(rec[0])}, key, b64u8(rec[1])); })
+      .then(function (pt) { return new TextDecoder().decode(pt); });
+  }).catch(function () { return ''; });
+}
+function resolveEmail(user) { var e = emailOf(user); return e ? Promise.resolve(e) : aliasEmail(user); }
 function sidOfEmail(email) { var m = String(email || '').toLowerCase().match(/^(\d{3,8})@(.+)$/); return m && m[2] === DOMAIN ? m[1] : ''; }
 function profileOf(user) {
   return timeout(M.fs.getDoc(M.fs.doc(db, 'users', user.uid)), 15000).then(function (s) {
@@ -46,7 +63,9 @@ function profileOf(user) {
 // เข้าสู่ระบบ → {uid, email, sid, name, room, no, role, mustChange}
 function signIn(user, pw) {
   return load().then(function () {
-    var email = emailOf(user); if (!email) throw err('auth/invalid-email');
+    return resolveEmail(user);
+  }).then(function (email) {
+    if (!email) throw err('auth/invalid-email');
     return timeout(M.auth.signInWithEmailAndPassword(auth, email, String(pw)), 20000, 'auth/network-request-failed');
   }).then(function (cred) {
     return profileOf(cred.user).catch(function (e) { return M.auth.signOut(auth).then(function () { throw e; }, function () { throw e; }); });
@@ -144,7 +163,7 @@ function myResults() {
 }
 var MSG = {
   'auth/invalid-credential': 'เลขประจำตัวหรือรหัสผ่านไม่ถูกต้อง', 'auth/wrong-password': 'เลขประจำตัวหรือรหัสผ่านไม่ถูกต้อง', 'auth/user-not-found': 'เลขประจำตัวหรือรหัสผ่านไม่ถูกต้อง',
-  'auth/invalid-email': 'พิมพ์เลขประจำตัวนักเรียน (ครู: อีเมล)', 'auth/user-disabled': 'บัญชีนี้ถูกปิดใช้งาน แจ้งครูออม',
+  'auth/invalid-email': 'พิมพ์เลขประจำตัวนักเรียน (ครู: ชื่อผู้ใช้ หรืออีเมล)', 'auth/user-disabled': 'บัญชีนี้ถูกปิดใช้งาน แจ้งครูออม',
   'auth/too-many-requests': 'ลองผิดหลายครั้งเกินไป รอสักครู่แล้วลองใหม่', 'auth/network-request-failed': 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง', 'timeout': 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง',
   'auth/weak-password': 'รหัสใหม่ต้องยาวอย่างน้อย 6 ตัว', 'same-as-old': 'รหัสใหม่ต้องไม่ซ้ำรหัสเดิม/รหัสครั้งแรก', 'same-as-id': 'ห้ามใช้เลขประจำตัวเป็นรหัสผ่าน',
   'auth/requires-recent-login': 'กรุณาเข้าสู่ระบบอีกครั้ง', 'no-profile': 'ยังไม่มีบัญชีในระบบ แจ้งครูออม', 'sdk-load': 'โหลดระบบเข้าสู่ระบบไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่',
@@ -152,7 +171,7 @@ var MSG = {
 };
 function message(e) { var c = e && e.code; return MSG[c] || (c === 'auth/missing-password' ? 'พิมพ์รหัสผ่าน' : 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'); }
 
-window.EG_FB = {on: on, configured: function () { return !!configured; }, load: load, emailOf: emailOf, sidOfEmail: sidOfEmail, signIn: signIn, current: current,
+window.EG_FB = {on: on, configured: function () { return !!configured; }, load: load, emailOf: emailOf, resolveEmail: resolveEmail, sidOfEmail: sidOfEmail, signIn: signIn, current: current,
   setFirstPassword: setFirstPassword, changePassword: changePassword, signOut: signOut, idToken: idToken, saveEvents: saveEvents,
   teacherResults: teacherResults, myResults: myResults, message: message};
 })();
