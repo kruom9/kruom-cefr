@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ios.css?v=20261027c">
+<link rel="stylesheet" href="ios.css?v=20261027d">
 </head>
 <body>
 <header class="nav" id="nav">
@@ -31,8 +31,9 @@
 <div class="whobar"><span class="who" id="who" hidden></span></div>
 <main id="app" tabindex="-1"><div class="loading">กำลังโหลด…</div></main>
 <footer class="foot">
-  <img src="assets/piyamit-logo-256.png" alt="" width="26" height="26">
-  <div>โรงเรียนปิยมิตรวิทยา ฝ่ายมัธยม · อ.เชียงคำ จ.พะเยา<br><span>Exam Gym ม.6 · ครูออม · ปีการศึกษา 2569 · <a href="#/sources">ที่มาของข้อสอบ</a></span></div>
+  <button class="foot-btn" type="button" data-about="about"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 9v5M10 6.2v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>เกี่ยวกับ</button>
+  <button class="foot-btn" type="button" data-about="privacy">ความเป็นส่วนตัว</button>
+  <a class="foot-btn" href="#/sources">ที่มาข้อสอบ</a>
 </footer>
 <nav class="tabbar" id="tabbar" hidden aria-label="เมนูหลัก">
   <a href="#/subjects" data-tab="home"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M4 13.2 14 4.5l10 8.7V23a1.5 1.5 0 0 1-1.5 1.5H17v-7h-6v7H5.5A1.5 1.5 0 0 1 4 23z" fill="currentColor"/></svg><span>หน้าหลัก</span></a>
@@ -40,11 +41,28 @@
   <a href="#/soc/mock" data-tab="mock"><svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="15.5" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M14 10v6l3.5 2.5M11 3.5h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>สอบจำลอง</span></a>
   <a href="#/soc/me" data-tab="me"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M5 23.5V15M11.3 23.5V9M17.6 23.5V12.5M24 23.5V5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>ผลของฉัน</span></a>
 </nav>
+<div class="modal xsheet" id="about" hidden><div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="aboutT">
+  <div class="ab-hd"><img src="assets/piyamit-logo-256.png" alt="" width="64" height="64"><h3 id="aboutT">Exam Gym ม.6</h3><p>โรงเรียนปิยมิตรวิทยา ฝ่ายมัธยม · อ.เชียงคำ จ.พะเยา</p></div>
+  <div class="group ab-feat">
+    <div class="cell"><i class="xic c1">100</i><span>ข้อสอบจริง ทปอ. 2568–2569</span></div>
+    <div class="cell"><i class="xic c2">5</i><span>สาระ · 17 หัวข้อ</span></div>
+    <div class="cell"><i class="xic c3">✓✗</i><span>อธิบายทุกตัวเลือก</span></div>
+    <div class="cell"><i class="xic c4">90′</i><span>สอบจำลอง 50 ข้อ 90 นาที</span></div>
+  </div>
+  <h4 class="gh" id="privacy">ความเป็นส่วนตัว (PDPA)</h4>
+  <div class="group ab-pdpa">
+    <div class="cell"><b>เก็บอะไร</b><span>ห้อง เลขที่ ชื่อ–สกุล · คำตอบและเวลาที่ใช้แต่ละข้อ · คะแนนสอบจำลอง · เวลาฝึก · ชนิดอุปกรณ์และความกว้างจอ · เลขประจำตัวนักเรียน (เฉพาะเมื่อระบบขอ เพื่อยืนยันตัวตน)</span></div>
+    <div class="cell"><b>เก็บที่ไหน</b><span>Google Sheet ส่วนตัวของครูออม (ไม่เผยแพร่) และในเบราว์เซอร์ของเครื่องนี้</span></div>
+    <div class="cell"><b>ใช้ทำอะไร</b><span>ติดตามและช่วยการเตรียมสอบของนักเรียน ม.6 เท่านั้น</span></div>
+    <div class="cell"><b>สิทธิ์ของเรา</b><span>ขอดู แก้ไข หรือลบข้อมูล ติดต่อครูออม · ออกจากระบบได้ที่ “ผลของฉัน”</span></div>
+  </div>
+  <div class="row ab-row"><a class="btn" href="#/sources" data-close>ที่มาของข้อสอบ</a><button class="btn pri" type="button" data-close>ปิด</button></div>
+</div></div>
 <div class="modal" id="modal" hidden><div class="modal-box" role="dialog" aria-modal="true" id="modalBox"></div></div>
 <noscript><p style="padding:24px">กรุณาเปิดใช้ JavaScript</p></noscript>
 <script src="config.js?v=20261027b"></script>
 <script src="data/soc_bank.js?v=20261027"></script>
 <script src="app.js?v=20261027b"></script>
-<script src="ios.js?v=20261027c"></script>
+<script src="ios.js?v=20261027d"></script>
 </body>
 </html>
