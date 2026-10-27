@@ -460,3 +460,18 @@ h2.ah{max-width:440px;margin-left:auto!important;margin-right:auto!important;box
 .auth .ahint+.aerr{margin-top:6px}
 .auth .consent{margin:12px 0 0}
 .auth>.btn.pri{width:100%;margin-top:8px}
+/* รุ่น 4: ลงทะเบียนครั้งแรก */
+.regbox{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:22px 0 0;padding-top:16px;border-top:.5px solid var(--sep)}
+.regbox>span{font-size:14px;color:var(--label2);text-align:center}
+.regbtn{width:100%;background:var(--tint-soft);color:var(--tint);font-weight:700}
+.regbtn.hot{box-shadow:0 0 0 3px var(--tint);animation:eg6hot 1.2s ease-in-out 2}
+@keyframes eg6hot{50%{transform:scale(1.03)}}
+@media (prefers-reduced-motion:reduce){.regbtn.hot{animation:none}}
+.notice.warn{margin:0 0 12px;border-left-color:var(--orange);line-height:1.5}
+.notice.warn b{color:var(--orange-t);font-size:17px}
+.notice.warn::before{content:"⚠ ";font-weight:700;color:var(--orange-t)}
+#names .nm{flex:1;min-width:0}
+#names small{flex:0 0 auto;font-size:14px}
+#names .empty{padding:16px;text-align:center}
+.auth .idv.me{color:var(--label);font-weight:600;letter-spacing:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auth .group+.group{margin-top:14px}

@@ -205,7 +205,7 @@ function logout() {
 function pRegister() {
   if (!BACKEND) return pRegisterV1();
   view('<div class="loading">กำลังโหลด…</div>');
-  jsonp({action: 'health'}).then(function (d) { if (d && d.auth === 3) pLogin3(); else if (d && d.auth === 2) pAuth(d); else pRegisterV1(); })
+  jsonp({action: 'health'}).then(function (d) { if (d && d.auth >= 4) pLogin4(); else if (d && d.auth === 3) pLogin3(); else if (d && d.auth === 2) pAuth(d); else pRegisterV1(); })
     .catch(function () { view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2>เข้าสู่ระบบ</h2><div class="notice err">เชื่อมต่อไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่</div><div class="auth"><button class="btn pri big" id="retry">ลองใหม่</button></div>'); $('#retry').onclick = pRegister; });
 }
 // ---------- เข้าสู่ระบบรุ่น 1 (รายชื่อ) · ใช้เฉพาะเมื่อ backend ยังเป็นรุ่นเก่า ----------
@@ -404,6 +404,127 @@ function pLogin3() {
       })
       .catch(function (e) { busy(false); err(e && e.message === 'nocrypto' ? 'เบราว์เซอร์นี้ใช้ไม่ได้ ลองเปิดด้วย Chrome หรือ Safari' : 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง'); });
   };
+}
+
+// ---------- เข้าสู่ระบบรุ่น 4: ชื่อผู้ใช้ + รหัสผ่าน · ลงทะเบียนครั้งแรก (รหัสห้อง → เลือกชื่อ → ตั้งชื่อผู้ใช้/รหัสผ่าน) · ใช้เมื่อ health auth>=4 ----------
+function csId() { var cs = sessionStorage.getItem('eg6:cs'); if (!cs) { cs = rid('C'); try { sessionStorage.setItem('eg6:cs', cs); } catch (e) {} } return cs; }
+var NOCRYPTO = 'เบราว์เซอร์นี้ใช้ไม่ได้ ลองเปิดด้วย Chrome หรือ Safari', NETERR = 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
+var UNAME_RE = /^[A-Za-z0-9\u0E01-\u0E4E._-]{3,30}$/;
+function loggedIn(d) { student = {room: d.room, no: d.no, name: d.name, role: d.role, token: d.token, at: Date.now()}; ls('student', student); Q.blocked = ''; go('#/subjects'); flush(true); }
+function pLogin4(flash) {
+  var cs = csId();
+  view('<div class="crumb"><a href="#/">← หน้าแรก</a></div><h2 class="ah">เข้าสู่ระบบ</h2>' +
+    '<form class="auth" id="af" autocomplete="on" novalidate>' +
+    '<div class="group fields"><label class="cell"><span>ชื่อผู้ใช้</span><input id="un" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="80" enterkeyhint="next" placeholder="ชื่อผู้ใช้" lang="th"></label>' +
+    '<label class="cell"><span>รหัสผ่าน</span><input id="pw" name="password" type="password" autocomplete="current-password" autocapitalize="off" maxlength="64" enterkeyhint="go" placeholder="รหัสผ่าน"></label></div>' +
+    '<p class="ahint">ครู: ใช้ชื่อ-นามสกุลเต็มเหมือนเดิม · ลืมรหัสผ่าน แจ้งครูออม</p>' +
+    '<p class="aerr" id="msg" role="alert" aria-live="polite"></p>' +
+    '<button class="btn pri big" id="go" type="submit">เข้าสู่ระบบ</button>' +
+    '<div class="regbox"><span>ยังไม่มีชื่อผู้ใช้?</span><button type="button" class="btn big regbtn" id="reg">ลงทะเบียนครั้งแรก</button></div>' +
+    '<p class="consent">เข้าสู่ระบบ = ยินยอมให้ส่งผลฝึกถึงครูออม <button type="button" class="xi" data-about="privacy" aria-label="ความเป็นส่วนตัว">ⓘ</button></p></form>');
+  var un = $('#un'), pw = $('#pw'), go_ = $('#go'), msg = $('#msg'), reg = $('#reg');
+  function err(t) { msg.textContent = t || ''; }
+  function busy(on) { go_.disabled = !!on; go_.textContent = on ? 'กำลังตรวจ…' : 'เข้าสู่ระบบ'; }
+  err(flash || AUTH_FLASH); AUTH_FLASH = '';
+  [un, pw].forEach(function (x) { x.addEventListener('input', function () { err(''); reg.classList.remove('hot'); }); });
+  reg.onclick = function () { pReg4(); };
+  setTimeout(function () { try { un.focus({preventScroll: true}); } catch (e) {} }, 60);
+  $('#af').onsubmit = function (e) {
+    e.preventDefault(); if (go_.disabled) return;
+    var u = un.value.replace(/\s+/g, ' ').trim(), p = pw.value.trim();
+    if (!u) { err('พิมพ์ชื่อผู้ใช้'); un.focus(); return; }
+    if (!p) { err('พิมพ์รหัสผ่าน'); pw.focus(); return; }
+    busy(true);
+    sha256hex('eg6pw|' + p).then(function (h) { return apost({action: 'login3', cs: cs, user: u, pw: h}); })
+      .then(function (d) {
+        if (d && d.ok && d.found) { pw.value = ''; loggedIn(d); return; }
+        busy(false); pw.value = '';
+        if (d && d.code === 'gone') { pRegister(); return; }
+        err((d && d.message) || NETERR);
+        if (d && d.code === 'need_register') { reg.classList.add('hot'); reg.focus(); } else pw.focus();
+      })
+      .catch(function (e) { busy(false); err(e && e.message === 'nocrypto' ? NOCRYPTO : NETERR); });
+  };
+}
+function pReg4() {
+  var R = {cs: csId(), pwh: '', list: [], pick: null}; // แฮชรหัสห้องเก็บในหน่วยความจำเท่านั้น
+  function steps(n) { return '<div class="steps">' + ['1 รหัสห้อง', '2 เลือกชื่อ', '3 ตั้งชื่อผู้ใช้'].map(function (t, i) { return '<span class="' + (n === i + 1 ? 'on' : '') + '">' + t + '</span>'; }).join('') + '</div>'; }
+  function scr(back, fn, title, n, body, btn) {
+    view('<div class="crumb"><a href="#/register" id="back">← ' + back + '</a></div><h2 class="ah">' + title + '</h2>' + steps(n) +
+      '<form class="auth" id="af" autocomplete="off" novalidate>' + body + (btn ? '<p class="aerr" id="msg" role="alert" aria-live="polite"></p><button class="btn pri big" id="go" type="submit">' + btn + '</button>' : '<p class="aerr" id="msg" role="alert" aria-live="polite"></p>') + '</form>');
+    $('#back').onclick = function (e) { e.preventDefault(); fn(); };
+    $('#af').onsubmit = function (e) { e.preventDefault(); };
+  }
+  function err(t) { var m = $('#msg'); if (m) m.textContent = t || ''; }
+  function busy(on, t) { var b = $('#go'); if (!b) return; if (on) { b.dataset.t = b.textContent; b.textContent = t || 'กำลังตรวจ…'; } else if (b.dataset.t) b.textContent = b.dataset.t; b.disabled = !!on; }
+  function onSubmit(fn) { $('#af').onsubmit = function (e) { e.preventDefault(); var b = $('#go'); if (!b || !b.disabled) fn(); }; }
+  function fetchList() { return apost({action: 'reg_list', cs: R.cs, pw: R.pwh}); }
+  // 1 รหัสผ่านของห้อง
+  function s1(flash) {
+    R.pwh = '';
+    scr('เข้าสู่ระบบ', function () { pLogin4(); }, 'ลงทะเบียนครั้งแรก', 1,
+      '<div class="group fields"><label class="cell"><span>รหัสห้อง</span><input id="rp" type="password" autocomplete="off" autocapitalize="off" maxlength="64" enterkeyhint="go" placeholder="รหัสผ่านของห้อง"></label></div>' +
+      '<p class="ahint">รหัสผ่านกลางที่ครูออมบอกในห้องเรียน</p>', 'ต่อไป');
+    var rp = $('#rp'); rp.addEventListener('input', function () { err(''); }); err(flash);
+    setTimeout(function () { try { rp.focus({preventScroll: true}); } catch (e) {} }, 60);
+    onSubmit(function () {
+      var v = rp.value.trim(); if (!v) return err('ใส่รหัสผ่านของห้อง');
+      busy(true);
+      sha256hex('eg6pw|' + v).then(function (h) { R.pwh = h; rp.value = ''; return fetchList(); })
+        .then(function (d) { if (d && d.ok && d.pass) { R.list = d.list || []; s2(); } else { busy(false); R.pwh = ''; if (d && d.code === 'gone') return pRegister(); err((d && d.message) || NETERR); } })
+        .catch(function (e) { busy(false); err(e && e.message === 'nocrypto' ? NOCRYPTO : NETERR); });
+    });
+  }
+  // 2 เลือกชื่อ (ค้นหาได้)
+  function s2(flash) {
+    scr('รหัสห้อง', function () { s1(); }, 'เลือกชื่อของฉัน', 2,
+      '<div class="notice warn" id="warn"><b>เลือกชื่อของตัวเองเท่านั้น</b><br>ครูออมเห็นทุกครั้งที่มีการลงทะเบียน</div>' +
+      '<input class="txt" id="find" type="search" placeholder="ค้นหาชื่อ" autocomplete="off" lang="th" aria-label="ค้นหาชื่อ"><div id="names" class="names"></div>', '');
+    err(flash);
+    function draw(f) {
+      f = f.replace(/\s/g, '');
+      var L = R.list.map(function (x, i) { return {x: x, i: i}; }).filter(function (o) { return !f || o.x.name.replace(/\s/g, '').indexOf(f) >= 0; });
+      $('#names').innerHTML = L.map(function (o) { return '<button type="button" data-i="' + o.i + '"><span class="nm">' + esc(o.x.name) + '</span>' + (o.x.room ? '<small class="muted">' + esc(o.x.room) + '</small>' : '') + '</button>'; }).join('') ||
+        '<div class="muted empty">' + (R.list.length ? 'ไม่พบชื่อที่ค้นหา' : 'ทุกคนลงทะเบียนแล้ว · ถ้ายังไม่ได้ลงทะเบียน แจ้งครูออม') + '</div>';
+      Array.prototype.forEach.call(document.querySelectorAll('#names button'), function (b) { b.onclick = function () { R.pick = R.list[Number(b.dataset.i)]; s3(); }; });
+    }
+    draw(''); $('#find').oninput = function () { draw(this.value); };
+  }
+  // 3 ตั้งชื่อผู้ใช้ + รหัสผ่าน
+  function s3() {
+    var x = R.pick;
+    scr('เลือกชื่อ', function () { s2(); }, 'ตั้งชื่อผู้ใช้', 3,
+      '<div class="group fields"><div class="cell"><span>ชื่อ</span><b class="idv me">' + esc(x.name) + '</b></div></div>' +
+      '<div class="group fields"><label class="cell"><span>ชื่อผู้ใช้</span><input id="nu" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="30" enterkeyhint="next" placeholder="3–30 ตัว" lang="th"></label>' +
+      '<label class="cell"><span>รหัสผ่าน</span><input id="p1" name="new-password" type="password" autocomplete="new-password" maxlength="64" enterkeyhint="next" placeholder="อย่างน้อย 6 ตัว"></label>' +
+      '<label class="cell"><span>ยืนยัน</span><input id="p2" type="password" autocomplete="new-password" maxlength="64" enterkeyhint="go" placeholder="พิมพ์อีกครั้ง"></label></div>' +
+      '<p class="ahint">ชื่อผู้ใช้: ภาษาไทย/อังกฤษ ตัวเลข . _ - ไม่เว้นวรรค · ใช้เข้าสู่ระบบครั้งต่อไป</p>' +
+      '<p class="consent">ลงทะเบียน = ยินยอมให้ส่งผลฝึกถึงครูออม <button type="button" class="xi" data-about="privacy" aria-label="ความเป็นส่วนตัว">ⓘ</button></p>', 'ลงทะเบียน');
+    var nu = $('#nu'), p1 = $('#p1'), p2 = $('#p2');
+    [nu, p1, p2].forEach(function (el) { el.addEventListener('input', function () { err(''); }); });
+    setTimeout(function () { try { nu.focus({preventScroll: true}); } catch (e) {} }, 60);
+    onSubmit(function () {
+      var u = nu.value.trim(), a = p1.value.trim(), b = p2.value.trim();
+      if (!UNAME_RE.test(u)) { nu.focus(); return err(u.length < 3 || u.length > 30 ? 'ชื่อผู้ใช้ 3–30 ตัว' : 'ชื่อผู้ใช้ใช้ได้เฉพาะ ไทย/อังกฤษ ตัวเลข . _ - (ไม่เว้นวรรค)'); }
+      if (a.length < 6) { p1.focus(); return err('รหัสผ่านอย่างน้อย 6 ตัว'); }
+      if (/^(.)\1+$/.test(a) || /^(123456|1234567|12345678|123456789|654321|password|qwerty)$/i.test(a) || a.toLowerCase() === u.toLowerCase()) { p1.focus(); return err('รหัสผ่านเดาง่ายเกินไป'); }
+      if (a !== b) { p2.focus(); return err('รหัสผ่านไม่ตรงกัน'); }
+      busy(true, 'กำลังบันทึก…');
+      sha256hex('eg6pw|' + a).then(function (h) { return apost({action: 'reg_claim', cs: R.cs, pw: R.pwh, token: x.t, username: u, newpw: h}); })
+        .then(function (d) {
+          if (d && d.ok && d.found) { p1.value = p2.value = ''; R = null; loggedIn(d); return; }
+          busy(false);
+          var c = d && d.code;
+          if (c === 'gone') return pRegister();
+          if (c === 'bad_pw') return s1(d.message);
+          if (c === 'taken' || c === 'bad') { return fetchList().then(function (l) { if (l && l.pass) R.list = l.list || []; s2(d.message || 'เลือกชื่ออีกครั้ง'); }).catch(function () { s2(d.message); }); }
+          if (c === 'bad_newpw') { p1.value = p2.value = ''; p1.focus(); } else if (c === 'dup_user' || c === 'reserved' || c === 'bad_user') nu.focus();
+          err((d && d.message) || NETERR);
+        })
+        .catch(function (e) { busy(false); err(e && e.message === 'nocrypto' ? NOCRYPTO : NETERR); });
+    });
+  }
+  s1();
 }
 
 function socStats() {
