@@ -214,7 +214,7 @@ body.sheet-open{overflow:hidden}
 /* ---------- ข้อสอบ ---------- */
 .q-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--label2);margin-top:4px}
 .q-meta b{color:var(--label);font-weight:600}
-.q-card{background:var(--cell);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.q-card{background:var(--cell);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);overflow-wrap:break-word;min-width:0}
 .q-no{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;max-width:100%}
 .stem{font-size:1.08em;line-height:1.65}
 .stem p{margin:0 0 .55em}
@@ -359,7 +359,7 @@ body{font-size:var(--fs)}
 .hero .btn.ghost{min-height:44px;font-size:17px;font-weight:500;background:none}
 body.r-landing .foot{margin-top:6px}
 /* วิชา: hero การ์ด + รายการสั้น */
-.xhero{display:grid;gap:12px}
+.xhero{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .stem u{text-underline-offset:3px}
 .xhero>.s.on{display:flex;align-items:center;gap:14px;background:var(--cell);border-radius:var(--r-lg);padding:16px;color:var(--label);text-decoration:none!important;box-shadow:var(--shadow);border:1.5px solid var(--tint);position:relative}
 .xhero>.s.on:active{transform:scale(.98)}

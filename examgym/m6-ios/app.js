@@ -69,11 +69,26 @@ function emph(s) { return rich(esc(s).replace(EMPH, '<span class="em">$1</span>'
 function txt(s) { return rich(esc(s)); }
 function plain(s) { return String(s == null ? '' : s).replace(/\*\*|__/g, ''); }
 var QLINE = /ใด|อย่างไร|หรือไม่/;
-function qLine(it) { var L = String(it.stem).split('\n'); if (SUB === 'soc') return L[0]; for (var i = 0; i < L.length; i++) if (QLINE.test(L[i]) && L[i].length < 160) return L[i]; return L[0]; }
+function qLine(it) { var L = String(it.stem).split('\n'); if (SUB === 'soc') return L[0]; var L0 = L.filter(function (l) { return l && !/^〔.*〕$/.test(l); }); if (L0.length) L = L0; for (var i = 0; i < L.length; i++) if (QLINE.test(L[i]) && L[i].length < 160) return L[i]; return L[0]; }
 function isRight(it, c) { if (it.key === 'free') return c != null && c !== ''; return it.key.indexOf(Number(c)) >= 0; }
 function keyText(it) { return it.key === 'free' ? 'ทุกตัวเลือก (ทปอ. ประกาศให้คะแนนทุกคน)' : it.key.map(function (k) { return 'ข้อ ' + k; }).join(' หรือ '); }
 function itemLen(it) { return (it.stem || '').length + it.choices.join('').length + (it.table ? JSON.stringify(it.table).length : 0); }
-function cite(it) { return 'ข้อสอบ ' + BANK.meta.title + ' ปีการศึกษา ' + it.year + ' ข้อ ' + it.n + ' · ทปอ. เผยแพร่ที่ mytcas.com (สอบ ' + BANK.meta.dates[it.year] + ') · เฉลยตามที่ ทปอ. เผยแพร่ · คำอธิบายจัดทำเพิ่มเพื่อการฝึก (ร่าง รอครูตรวจ)'; }
+// ชนิดข้อตามรูปแบบ id ของคลัง: 'real' ข้อสอบจริง (yy-n) · 'sample' ตัวอย่างข้อสอบจากหน้าโครงสร้างข้อสอบของ ทปอ. (s…) · 'orig' ข้อสอบฝึกแต่งใหม่ ไม่ใช่ข้อสอบจริง (p…)
+function kindOf(it) { return /^p/.test(it.id) ? 'orig' : /^s/.test(it.id) ? 'sample' : 'real'; }
+function kindCount(L) { var c = {real: 0, sample: 0, orig: 0}; (L || BANK.items).forEach(function (it) { if (it) c[kindOf(it)]++; }); return c; }
+function allReal(B) { return (B || BANK).items.every(function (it) { return kindOf(it) === 'real'; }); }
+function kindText(c) { return [c.real ? 'ข้อสอบจริง ' + c.real + ' ข้อ' : '', c.sample ? 'ตัวอย่างข้อสอบ ทปอ. ' + c.sample + ' ข้อ' : '', c.orig ? 'ข้อสอบฝึกแต่งใหม่ ' + c.orig + ' ข้อ' : ''].filter(Boolean).join(' + '); }
+function examTag(B) { var m = String((B || BANK).meta.title).match(/^(A-Level|TGAT|TPAT)/); return m ? m[1] : ''; }
+function blueprintUrl(B) { var u = (B || BANK).meta.urls || {}; for (var y in u) if (/blueprint/.test(u[y])) return u[y]; return ''; }
+function cite(it) {
+  var k = kindOf(it), bp = blueprintUrl();
+  if (k === 'sample') return 'ตัวอย่างข้อสอบ ' + BANK.meta.title + ' ข้อ ' + it.n + ' จากหน้าโครงสร้างข้อสอบของ ทปอ.' + (bp ? ' (' + bp + ')' : '') + ' · เฉลยตามที่ ทปอ. ระบุ · คำอธิบายจัดทำเพิ่มเพื่อการฝึก (ร่าง รอครูตรวจ)';
+  if (k === 'orig') return 'ข้อสอบฝึกที่แต่งขึ้นใหม่ตามโครงสร้างข้อสอบ ' + BANK.meta.title + ' ของ ทปอ. — ไม่ใช่ข้อสอบจริง ทปอ. · เฉลยและคำอธิบายโดยผู้จัดทำ (ร่าง รอครูตรวจ)';
+  return 'ข้อสอบ ' + BANK.meta.title + ' ปีการศึกษา ' + it.year + ' ข้อ ' + it.n + ' · ทปอ. เผยแพร่ที่ mytcas.com (สอบ ' + BANK.meta.dates[it.year] + ') · เฉลยตามที่ ทปอ. เผยแพร่ · คำอธิบายจัดทำเพิ่มเพื่อการฝึก (ร่าง รอครูตรวจ)';
+}
+// ที่อยู่ภาพ: soc ใช้ img/ เดิม · วิชาอื่นใช้ data/img/ · รับทั้ง 'x.png', 'eng/x.png' และ '../data/img/eng/x.png' (รูปแบบของคลัง banks2)
+function imgSrc(p) { p = String(p); var m = p.match(/^(?:\.\.\/|\.\/)*data\/img\/(.+)$/); return m ? 'data/img/' + m[1] : (SUB === 'soc' ? 'img/' : 'data/img/') + p; }
+function imgAlt(it) { var k = kindOf(it); return k === 'orig' ? 'ภาพประกอบโจทย์' : k === 'sample' ? 'ภาพประกอบโจทย์ (จากตัวอย่างข้อสอบของ ทปอ.)' : 'ภาพประกอบโจทย์ (จากข้อสอบต้นฉบับ)'; }
 function itemsOf(f) { return BANK.items.filter(f).sort(function (a, b) { return a.sara - b.sara || b.year - a.year || a.n - b.n; }); }
 
 // ---------- student & progress ----------
@@ -188,12 +203,12 @@ function go(h) { if (location.hash === h) route(); else location.hash = h; }
 function stemHtml(it) {
   var h = '', lines = String(it.stem).split('\n');
   lines.forEach(function (l) { var f = SUB === 'soc' || (QLINE.test(l) && l.length < 160) ? emph : txt; if (/^“|^"/.test(l) && /”$|"$|”\s*$/.test(l)) h += '<blockquote>' + f(l) + '</blockquote>'; else h += '<p>' + f(l) + '</p>'; });
-  if (it.img) h += '<img class="qimg" src="' + (SUB === 'soc' ? 'img/' : 'data/img/') + esc(it.img) + '" alt="ภาพประกอบโจทย์ (จากข้อสอบต้นฉบับ)">';
+  if (it.img) h += '<img class="qimg" src="' + esc(imgSrc(it.img)) + '" alt="' + imgAlt(it) + '">';
   if (it.table) { h += '<table class="qtable"><thead><tr>' + it.table[0].map(function (c) { return '<th>' + txt(c) + '</th>'; }).join('') + '</tr></thead><tbody>' + it.table.slice(1).map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + txt(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>'; }
   if (it.after) h += '<p>' + emph(it.after) + '</p>';
   return '<div class="stem">' + h + '</div>';
 }
-function badge(it) { return '<span class="tag src">ข้อสอบจริง ทปอ. ปี ' + it.year + ' ข้อ ' + it.n + '</span>'; }
+function badge(it) { var k = kindOf(it); return '<span class="tag src">' + (k === 'sample' ? 'ตัวอย่างข้อสอบ ทปอ. ข้อ ' + it.n : k === 'orig' ? 'ข้อสอบฝึก (แต่งใหม่ ไม่ใช่ข้อสอบจริง)' : 'ข้อสอบจริง ทปอ. ปี ' + it.year + ' ข้อ ' + it.n) + '</span>'; }
 function choicesHtml(it, opts) {
   opts = opts || {};
   return '<div class="choices">' + it.choices.map(function (c, i) {
@@ -772,7 +787,12 @@ function statsOf(id) {
 function socStats() { return statsOf(SUB); }
 function years() { var y = {}; BANK.items.forEach(function (it) { y[it.year] = 1; }); return Object.keys(y).sort(); }
 function yearsText() { var y = years(); return y.length > 1 ? y.slice(0, -1).join(', ') + ' และ ' + y[y.length - 1] : y[0]; }
-function realMocks() { return BANK.mocks.filter(function (m) { return !m.mix && m.ids && m.ids.length; }); }
+// ชุดอ้างอิงความยาว/สัดส่วนสาระ: ชุดข้อสอบจริงทุกชุด · ถ้าคลังไม่มีชุดข้อสอบจริง (เช่น TGAT) ใช้ชุดเต็มที่ยาวที่สุด (ชุดฝึกตามโครงสร้างสนามจริง)
+function realMocks() {
+  var R = BANK.mocks.filter(function (m) { return !m.mix && m.ids && m.ids.length; });
+  var A = R.filter(function (m) { return m.ids.every(function (id) { return ITEMS[id] && kindOf(ITEMS[id]) === 'real'; }); });
+  return A.length ? A : R.slice().sort(function (a, b) { return b.ids.length - a.ids.length; }).slice(0, 1);
+}
 // ชุดคละ: จำนวนข้อต่อสาระ = ค่าเฉลี่ยของชุดข้อสอบจริง (soc: สาระละ 10 · วิชาอื่นตามสัดส่วนจริง) ปัดแบบเศษมากสุด ให้รวมเท่าความยาวข้อสอบจริง
 function mixQuota() {
   var R = realMocks(), sum = {}, tot = 0;
@@ -789,14 +809,14 @@ function pSubjects() {
   var live = SUBJECTS.filter(function (x) { return x.live; });
   view('<h2>เลือกวิชา</h2><p class="muted">สวัสดี' + (student.preview ? 'ครับ/ค่ะ (โหมดตัวอย่าง)' : ' ' + esc(student.name)) + ' · เปิดแล้ว ' + live.length + ' วิชา วิชาอื่นทยอยเปิดเร็ว ๆ นี้</p><div class="subj">' + (isTeacher() ? '<a class="s on dash-link" href="#/admin" id="dashLink"><span class="tag live">ครู</span><b>แดชบอร์ดครู</b><small>ภาพรวมการใช้งาน ม.6 · รายห้อง · รายคน · รายวิชา</small></a>' : '') +
     live.concat(SUBJECTS.filter(function (x) { return !x.live; })).map(function (x) {
-      if (x.live) { var s = statsOf(x.id); return '<a class="s on" href="#/' + x.id + '" data-sub="' + x.id + '"><span class="tag live">เปิดแล้ว</span><b>' + esc(x.name) + '</b><small>' + esc(x.exam) + ' · ' + s.n + ' ข้อจริง + สอบเสมือนจริง</small><div class="bar" style="margin-top:auto"><i style="width:' + pct(s.done, s.n) + '%"></i></div><small>ทำแล้ว ' + s.done + '/' + s.n + ' ข้อ</small></a>'; }
+      if (x.live) { var s = statsOf(x.id); return '<a class="s on" href="#/' + x.id + '" data-sub="' + x.id + '"><span class="tag live">เปิดแล้ว</span><b>' + esc(x.name) + '</b><small>' + esc(x.exam) + ' · ' + (allReal(x.bank) ? s.n + ' ข้อจริง' : esc(kindText(kindCount(x.bank.items)))) + ' + สอบเสมือนจริง</small><div class="bar" style="margin-top:auto"><i style="width:' + pct(s.done, s.n) + '%"></i></div><small>ทำแล้ว ' + s.done + '/' + s.n + ' ข้อ</small></a>'; }
       return '<div class="s off" aria-disabled="true"><span class="tag">เร็ว ๆ นี้</span><b>' + esc(x.name) + '</b><small>' + esc(x.exam) + '</small></div>';
     }).join('') + '</div>');
 }
 function pSoc() {
   var s = socStats(), p = s.p, L = examLen(), q = mixQuota();
   var best = p.mocks.length ? p.mocks.reduce(function (m, x) { return x.score / x.total > m.score / m.total ? x : m; }) : null;
-  view('<div class="crumb"><a href="#/subjects">← เลือกวิชา</a></div><h2>' + esc(subName()) + ' · A-Level</h2><p class="muted">ข้อสอบจริง ' + esc(BANK.meta.title) + ' ปี ' + yearsText() + ' ที่ ทปอ. เผยแพร่ · สนามจริง ' + L.n + ' ข้อ ' + L.min + ' นาที (' + BANK.saras.length + ' สาระ' + (/^สาระละ/.test(quotaText(q)) ? ' ' + quotaText(q) : '') + ')</p>' +
+  view('<div class="crumb"><a href="#/subjects">← เลือกวิชา</a></div><h2>' + esc(subName()) + (examTag() && subName().indexOf(examTag()) < 0 ? ' · ' + examTag() : '') + '</h2><p class="muted">' + (allReal() ? 'ข้อสอบจริง ' + esc(BANK.meta.title) + ' ปี ' + yearsText() + ' ที่ ทปอ. เผยแพร่' : esc(kindText(kindCount())) + ' ตามโครงสร้างข้อสอบ ' + esc(BANK.meta.title) + ' ของ ทปอ. (ข้อฝึกแต่งใหม่ไม่ใช่ข้อสอบจริง)') + ' · สนามจริง ' + L.n + ' ข้อ ' + L.min + ' นาที (' + BANK.saras.length + ' สาระ' + (/^สาระละ/.test(quotaText(q)) ? ' ' + quotaText(q) : '') + ')</p>' +
     '<div class="stats"><div class="stat"><b>' + s.done + '<small style="font-size:16px">/' + s.n + '</small></b><span>ข้อที่ทำแล้ว</span></div><div class="stat"><b>' + pct(s.ok, s.done) + '%</b><span>ตอบถูก (ล่าสุด)</span></div><div class="stat"><b>' + Math.round(p.active / 60) + '</b><span>นาทีที่ฝึกในเครื่องนี้</span></div><div class="stat"><b>' + (best ? best.score + '/' + best.total : '–') + '</b><span>สอบเสมือนจริงดีที่สุด</span></div></div>' +
     '<div class="grid g3"><a class="btn pri big" href="' + base() + '/mock">⏱ สอบเสมือนจริง</a><a class="btn big" href="' + base() + '/review">ทบทวนข้อที่ผิด (' + s.wrong + ')</a><a class="btn big" href="' + base() + '/me">ผลของฉัน</a></div>' +
     '<div class="section"><h3>ฝึกตามสาระ</h3><span class="muted small">แตะสาระเพื่อเลือกหัวข้อย่อย · ทำทีละข้อ รู้ผลทันที</span></div>' +
@@ -817,7 +837,7 @@ function pSara(id) {
   var cnt = function (L) { var d = 0, o = 0; L.forEach(function (it) { var x = p.items[it.id]; if (x) { d++; if (x.ok) o++; } }); return {d: d, o: o}; };
   var c = cnt(all), yr = years().slice().reverse().map(function (y) { return 'ปี ' + y + ' ข้อ ' + nums(all.filter(function (it) { return String(it.year) === y; }).map(function (it) { return it.n; }).sort(function (a, b) { return a - b; })); }).join(' และ ');
   view('<div class="crumb"><a href="' + base() + '">← ' + esc(subName()) + '</a></div><div class="sara"><div class="hd"><span class="num">' + sa.id + '</span><h2 style="margin:0">' + esc(sa.name) + '</h2></div></div>' +
-    '<p class="muted">ข้อสอบจริง ' + all.length + ' ข้อ (' + yr + ') · ทำแล้ว ' + c.d + ' · ถูก ' + c.o + '</p>' +
+    '<p class="muted">' + (allReal() ? 'ข้อสอบจริง ' + all.length + ' ข้อ (' + yr + ')' : 'ข้อในคลัง ' + all.length + ' ข้อ (' + esc(kindText(kindCount(all))) + ')') + ' · ทำแล้ว ' + c.d + ' · ถูก ' + c.o + '</p>' +
     '<div class="row" style="margin:10px 0 20px"><button class="btn pri big" data-go="sara">ฝึกทั้งสาระ (' + all.length + ' ข้อ)</button><button class="btn big" data-go="rand">สุ่มลำดับ</button></div>' +
     '<h3>เลือกหัวข้อย่อย</h3><div class="topics">' + sa.topics.map(function (t) {
       var L = all.filter(function (it) { return it.topic === t.id; }), k = cnt(L);
@@ -871,15 +891,20 @@ function mockIds(m) {
   BANK.saras.forEach(function (sa) { out = out.concat(shuffle(BANK.items.filter(function (it) { return it.sara === sa.id; })).slice(0, q[sa.id] || 0).sort(function (a, b) { return b.year - a.year || a.n - b.n; }).map(function (x) { return x.id; })); });
   return out;
 }
+function mockDesc(m, qt) {
+  if (m.mix) return allReal() ? 'สุ่มข้อจากปี ' + yearsText() + ' ' + qt + ' ทุกครั้งไม่ซ้ำกัน' : 'สุ่มจากทุกข้อในคลัง (' + kindText(kindCount()) + ') ' + qt + ' ทุกครั้งไม่ซ้ำกัน';
+  var c = kindCount(m.ids.map(function (id) { return ITEMS[id]; })), n = m.ids.length;
+  return c.real === n ? 'ข้อสอบจริงทั้งฉบับ ตามลำดับข้อในกระดาษจริง' : c.sample === n ? 'ตัวอย่างข้อสอบจากหน้าโครงสร้างข้อสอบของ ทปอ. ครบทุกข้อ' : c.orig === n ? 'ข้อสอบฝึกแต่งใหม่ (ไม่ใช่ข้อสอบจริง ทปอ.) ครบตามโครงสร้างสนามจริง' : kindText(c);
+}
 function mockLen(m) { if (!m.mix) return m.ids.length; var q = mixQuota(), n = 0; for (var k in q) n += q[k]; return n; }
 function pMockHome() {
   var run = ls(mkey()), p = prog(), L = examLen(), q = mixQuota(), qt = quotaText(q), S = BANK.saras.length;
-  view('<div class="crumb"><a href="' + base() + '">← ' + esc(subName()) + '</a></div><h2>สอบเสมือนจริง · A-Level ' + esc(subName()) + '</h2>' +
-    '<div class="card"><ul class="list"><li>' + L.n + ' ข้อ · เวลา ' + L.min + ' นาที (เท่าสนามจริง) · ' + (/^สาระละ/.test(qt) ? 'เรียงสาระ 1–' + S + ' ' + qt : 'ครบ ' + S + ' สาระตามข้อสอบจริง') + '</li><li>ไม่เฉลยระหว่างสอบ · ข้ามข้อ ย้อนกลับ และปักธงข้อที่ไม่แน่ใจได้</li><li>หมดเวลาระบบส่งให้อัตโนมัติ · ส่งแล้วเห็นคะแนนรวม คะแนนรายสาระ และเฉลยละเอียดทุกข้อ</li></ul></div>' +
+  view('<div class="crumb"><a href="' + base() + '">← ' + esc(subName()) + '</a></div><h2>สอบเสมือนจริง · ' + (examTag() && subName().indexOf(examTag()) < 0 ? examTag() + ' ' : '') + esc(subName()) + '</h2>' +
+    '<div class="card"><ul class="list"><li>' + L.n + ' ข้อ · เวลา ' + L.min + ' นาที (เท่าสนามจริง) · ' + (/^สาระละ/.test(qt) ? 'เรียงสาระ 1–' + S + ' ' + qt : 'ครบ ' + S + ' สาระ' + (allReal() ? 'ตามข้อสอบจริง' : 'ตามโครงสร้างข้อสอบของ ทปอ.')) + '</li><li>ไม่เฉลยระหว่างสอบ · ข้ามข้อ ย้อนกลับ และปักธงข้อที่ไม่แน่ใจได้</li><li>หมดเวลาระบบส่งให้อัตโนมัติ · ส่งแล้วเห็นคะแนนรวม คะแนนรายสาระ และเฉลยละเอียดทุกข้อ</li></ul></div>' +
     (run && !run.done ? '<div class="notice" style="margin-top:16px">มีชุดที่ทำค้างไว้: ' + esc(run.name) + ' · <button class="btn pri" id="resume" style="margin-left:8px">ทำต่อ</button></div>' : '') +
     '<div class="grid g3" style="margin-top:16px">' + BANK.mocks.map(function (m) {
       var hist = p.mocks.filter(function (x) { return x.set === m.id; });
-      return '<div class="card hl"><h3>' + esc(m.name) + '</h3><p class="muted small">' + (m.mix ? 'สุ่มข้อจากปี ' + yearsText() + ' ' + qt + ' ทุกครั้งไม่ซ้ำกัน' : 'ข้อสอบจริงทั้งฉบับ ตามลำดับข้อในกระดาษจริง') + '</p><p class="small">' + (hist.length ? 'ทำแล้ว ' + hist.length + ' ครั้ง · ล่าสุด ' + hist[hist.length - 1].score + '/' + hist[hist.length - 1].total : 'ยังไม่เคยทำ') + '</p><button class="btn pri" data-m="' + m.id + '">เริ่มสอบ</button></div>';
+      return '<div class="card hl"><h3>' + esc(m.name) + '</h3><p class="muted small">' + mockDesc(m, qt) + '</p><p class="small">' + (hist.length ? 'ทำแล้ว ' + hist.length + ' ครั้ง · ล่าสุด ' + hist[hist.length - 1].score + '/' + hist[hist.length - 1].total : 'ยังไม่เคยทำ') + '</p><button class="btn pri" data-m="' + m.id + '">เริ่มสอบ</button></div>';
     }).join('') + '</div>');
   if ($('#resume')) $('#resume').onclick = function () { go(base() + '/mock/run'); };
   Array.prototype.forEach.call(document.querySelectorAll('[data-m]'), function (b) {
@@ -980,14 +1005,15 @@ function pMe() {
   $('#lo').onclick = function () { confirmBox('<h3>ออกจากระบบ?</h3><p>ข้อมูลที่บันทึกแล้วยังอยู่ครบ</p>', 'ออกจากระบบ', logout); };
 }
 var SOC_NOTE = 'เฉลยทุกข้อใช้ตามที่ ทปอ. เผยแพร่ · ปี 2568 ข้อ 27 ทปอ. เฉลย 2 คำตอบ (ข้อ 3 หรือ 5) และข้อ 42 ทปอ. ประกาศให้คะแนนทุกคน (“ฟรีทุกข้อ”) · ปี 2569 ข้อ 29 แก้คำพิมพ์ผิดในต้นฉบับ “ขาดตลาต” เป็น “ขาดตลาด”';
+function noteLabel(id) { var m = String(id).match(/^(\d+)-(\d+)$/); if (m) return 'ปี 25' + m[1] + ' ข้อ ' + m[2]; m = String(id).match(/^s\d+-(\d+)$/); if (m) return 'ตัวอย่างข้อสอบ ทปอ. ข้อ ' + m[1]; m = String(id).match(/^p\d+-(.+)$/); return 'ข้อฝึก ' + (m ? m[1] : id); }
 function pSources() {
   var live = SUBJECTS.filter(function (x) { return x.live; });
   view('<div class="crumb"><a href="javascript:history.back()">← กลับ</a></div><h2>ที่มาของข้อสอบ</h2>' + live.map(function (x) {
     var B = x.bank, flagged = B.items.filter(function (it) { return it.f; }).length;
-    var notes = Object.keys(B.meta.notes || {}).map(function (id) { var m = id.split('-'); return 'ปี 25' + m[0] + ' ข้อ ' + m[1] + ' ' + B.meta.notes[id]; });
+    var notes = Object.keys(B.meta.notes || {}).map(function (id) { return noteLabel(id) + ' ' + B.meta.notes[id]; });
     return '<div class="card" data-src="' + x.id + '">' + (live.length > 1 ? '<h3>' + esc(x.name) + '</h3>' : '') + '<p>' + esc(B.meta.source) + '</p><ul class="list">' +
-      Object.keys(B.meta.urls).sort().reverse().map(function (y) { return '<li>' + esc(B.meta.title) + ' ปีการศึกษา ' + y + ' (สอบ ' + esc(B.meta.dates[y]) + ') · <a href="' + esc(B.meta.urls[y]) + '" target="_blank" rel="noopener">ไฟล์ข้อสอบและเฉลยของ ทปอ.</a></li>'; }).join('') +
-      '</ul><p>' + (x.id === 'soc' ? SOC_NOTE : 'เฉลยทุกข้อใช้ตามที่ ทปอ. เผยแพร่' + (notes.length ? ' · ' + esc(notes.join(' · ')) : '')) + '</p>' +
+      Object.keys(B.meta.urls).sort().reverse().map(function (y) { var u = B.meta.urls[y]; return /blueprint/.test(u) ? '<li>' + esc(B.meta.title) + ' · <a href="' + esc(u) + '" target="_blank" rel="noopener">หน้าโครงสร้างข้อสอบและตัวอย่างข้อสอบของ ทปอ.</a> · ' + esc(B.meta.dates[y]) + '</li>' : '<li>' + esc(B.meta.title) + ' ปีการศึกษา ' + y + ' (สอบ ' + esc(B.meta.dates[y]) + ') · <a href="' + esc(u) + '" target="_blank" rel="noopener">ไฟล์ข้อสอบและเฉลยของ ทปอ.</a></li>'; }).join('') +
+      '</ul><p>' + (x.id === 'soc' ? SOC_NOTE : (allReal(B) ? 'เฉลยทุกข้อใช้ตามที่ ทปอ. เผยแพร่' : esc(kindText(kindCount(B.items))) + ' · ตัวอย่างข้อสอบใช้เฉลยตามที่ ทปอ. ระบุ · ข้อสอบฝึกแต่งใหม่ไม่ใช่ข้อสอบจริง ทปอ. เฉลยโดยผู้จัดทำ (ร่าง รอครูตรวจ)') + (notes.length ? ' · ' + esc(notes.join(' · ')) : '')) + '</p>' +
       '<p>' + esc(B.meta.expl) + ' · ข้อที่มีประเด็นควรรู้เพิ่มเติม (' + flagged + ' ข้อ) แสดง “ข้อควรรู้” ไว้ใต้คำอธิบาย</p><p class="muted small">จัดหมวดสาระ/หัวข้อย่อยโดยครู เพื่อการฝึก · ตรวจแหล่งที่มาเมื่อ ' + esc(B.meta.checked) + '</p></div>';
   }).join(''));
 }
@@ -1036,7 +1062,7 @@ function route() {
   if (/^\/admin(\/|$)/.test(h)) return pAdmin(h);
   if ((m = h.match(/^\/([a-z0-9]+)(\/.*)?$/)) && subj(m[1])) {
     var x = subj(m[1]), rest = m[2] || '';
-    if (!x.live) { if (!LOADED) { view('<div class="loading">กำลังโหลด…</div>'); return; } return go('#/subjects'); }
+    if (!x.live) { if (!LOADED) { view('<div class="loading" data-wait="bank">กำลังโหลด…</div>'); return; } return go('#/subjects'); }
     useSubject(x.id);
     for (var i = 0; i < SUBPAGE.length; i++) { var mm = rest.match(SUBPAGE[i][0]); if (mm) return SUBPAGE[i][1](mm); }
   }
@@ -1054,6 +1080,6 @@ if (FB && student && student.fb) FB.current().then(function (p) {
   flush(true);
 }).catch(function (e) { if (e && e.code === 'no-profile') relogin(FB.message(e)); });
 route(); flush(true);
-READY.then(function () { LOADED = true; var h = location.hash; if (h === '#/subjects' || h === '#/sources' || /กำลังโหลด/.test(app.textContent) && app.children.length === 1) route(); });
+READY.then(function () { LOADED = true; var h = location.hash; if (h === '#/subjects' || h === '#/sources' || app.querySelector('[data-wait="bank"]')) route(); }); // route ซ้ำเฉพาะหน้ารอคลังข้อสอบ — ไม่วาดหน้าเข้าสู่ระบบซ้ำ (ข้อความแจ้งจะหาย)
 window.__EG = {Q: Q, ACT: ACT, flush: flush, prog: prog, BACKEND: BACKEND, FB: !!FB, student: function () { return student; }, subjects: SUBJECTS, sub: function () { return SUB; }, short: function (s) { return SHORT[s]; }};
 })();

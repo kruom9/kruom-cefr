@@ -10,7 +10,10 @@ function SUBS() { return EG().subjects || [{id: 'soc', name: 'สังคมศ
 function curSub() { var f = EG().sub; return f ? f() : 'soc'; }
 function subOf(id) { return SUBS().filter(function (x) { return x.id === id; })[0]; }
 var SHORT = {get: function (s) { var f = EG().short; return f ? f(s) || '' : ''; }};
-var SHORTNAME = {soc: 'สังคม', thai: 'ไทย', phy: 'ฟิสิกส์', chem: 'เคมี', bio: 'ชีวะ', sci: 'วิทย์ประยุกต์', eng: 'อังกฤษ'};
+var SHORTNAME = {soc: 'สังคม', thai: 'ไทย', phy: 'ฟิสิกส์', chem: 'เคมี', bio: 'ชีวะ', sci: 'วิทย์ประยุกต์', eng: 'อังกฤษ', tgat1: 'TGAT1', tgat2: 'TGAT2', tgat3: 'TGAT3'};
+function glyph(nm) { var t = String(nm).match(/^TGAT(\d)/); return GLYPH[nm] || (t ? 'T' + t[1] : String(nm).charAt(0)); }
+function examOf(id) { var x = subOf(id) || {}, m = String(x.exam || '').match(/^(A-Level|TGAT|TPAT)/); return m ? m[1] : 'A-Level'; }
+function isReal(it) { return !/^[sp]/.test(it.id); }
 var GLYPH = {'สังคมศึกษา': 'ส', 'ภาษาไทย': 'ก', 'ภาษาอังกฤษ': 'Aa', 'ฟิสิกส์': 'Φ', 'เคมี': 'Ch', 'ชีววิทยา': 'Bi', 'วิทยาศาสตร์ประยุกต์': 'Sc'};
 var io = null, pending = false, lastView = null;
 function student() { try { return JSON.parse(localStorage.getItem('eg6:student') || 'null'); } catch (e) { return null; } }
@@ -108,21 +111,21 @@ var PAGE = {
       var hero = document.createElement('div'); hero.className = 'xhero'; ons[0].parentNode.parentNode.insertBefore(hero, ons[0].parentNode);
       ons.forEach(function (on, i) {
         var m = on.textContent.match(/ทำแล้ว (\d+)\/(\d+)/), d = m ? +m[1] : 0, n = m ? +m[2] : 100, id = on.getAttribute('data-sub') || 'soc', nm = $('b', on).textContent;
-        on.innerHTML = '<i class="xic big' + (id === 'soc' ? '' : ' c' + (i % 6 + 1)) + '">' + (id === 'soc' ? ICON_SOC : (GLYPH[nm] || nm.charAt(0))) + '</i><span class="xt"><b>' + nm.replace(/</g, '&lt;') + '</b><small>A-Level</small></span>' + ring(d, n, 'ทำแล้ว');
+        on.innerHTML = '<i class="xic big' + (id === 'soc' ? '' : ' c' + (i % 6 + 1)) + '">' + (id === 'soc' ? ICON_SOC : glyph(nm)) + '</i><span class="xt"><b>' + nm.replace(/</g, '&lt;') + '</b><small>' + examOf(id) + '</small></span>' + ring(d, n, 'ทำแล้ว');
         hero.appendChild(on);
       });
       if ($('.s.off', app)) { var gh = document.createElement('h3'); gh.className = 'gh'; gh.textContent = 'เร็ว ๆ นี้'; hero.insertAdjacentElement('afterend', gh); }
     }
     $$('.s.off', app).forEach(function (s, i) {
       if (!once(s, 'o')) return; hide($('small', s));
-      var nm = $('b', s).textContent, g = GLYPH[nm] || (nm.match(/^TGAT(\d)/) ? 'T' + nm.match(/^TGAT(\d)/)[1] : nm.charAt(0));
+      var nm = $('b', s).textContent, g = glyph(nm);
       var ic = document.createElement('i'); ic.className = 'xic c' + (i % 6 + 1); ic.textContent = g; s.insertBefore(ic, s.firstChild);
       var tg = $('.tag', s); if (tg) tg.classList.add('soon');
     });
   },
   soc: function () {
     var h2 = $('h2', app);
-    if (h2 && once(h2, 's')) { var sid = curSub(), snm = (subOf(sid) || {}).name || ''; setT(h2, snm); h2.insertAdjacentHTML('afterbegin', '<i class="xic big' + (sid === 'soc' ? '' : ' c' + ((SUBS().filter(function (x) { return x.live; }).map(function (x) { return x.id; }).indexOf(sid)) % 6 + 1)) + '">' + (sid === 'soc' ? ICON_SOC : (GLYPH[snm] || snm.charAt(0))) + '</i>'); var p = h2.nextElementSibling; if (p && p.matches('p.muted')) hide(p); }
+    if (h2 && once(h2, 's')) { var sid = curSub(), snm = (subOf(sid) || {}).name || ''; setT(h2, snm); h2.insertAdjacentHTML('afterbegin', '<i class="xic big' + (sid === 'soc' ? '' : ' c' + ((SUBS().filter(function (x) { return x.live; }).map(function (x) { return x.id; }).indexOf(sid)) % 6 + 1)) + '">' + (sid === 'soc' ? ICON_SOC : glyph(snm)) + '</i>'); var p = h2.nextElementSibling; if (p && p.matches('p.muted')) hide(p); }
     heroStats({'ตอบถูก (ล่าสุด)': 'ถูก', 'นาทีที่ฝึกในเครื่องนี้': 'นาที', 'สอบเสมือนจริงดีที่สุด': 'สอบดีสุด'});
     var g3 = $('.grid.g3', app);
     if (g3 && once(g3, 'g')) {
@@ -141,12 +144,12 @@ var PAGE = {
       var last = c.lastElementChild, m = last && last.textContent.match(/ทำแล้ว (\d+)\/(\d+)/);
       if (m) { setT(last, m[1] + '/' + m[2]); last.className = 'xcount'; }
     });
-    var src = $('#app > p.small.muted:last-child'); if (src && once(src, 's')) src.innerHTML = '<a href="#/sources">ข้อสอบจริงจาก ทปอ. ›</a>';
+    var src = $('#app > p.small.muted:last-child'); if (src && once(src, 's')) src.innerHTML = '<a href="#/sources">' + (((subOf(curSub()) || {}).bank || {items: []}).items.every(isReal) ? 'ข้อสอบจริงจาก ทปอ. ›' : 'ที่มาของข้อสอบ ›') + '</a>';
   },
   sara: function () {
     var p = $('.sara', app) && $('.sara', app).nextElementSibling;
     if (p && p.matches('p.muted') && once(p, 's')) {
-      var a = p.textContent.match(/ข้อสอบจริง (\d+) ข้อ/), d = p.textContent.match(/ทำแล้ว (\d+)/);
+      var a = p.textContent.match(/(?:ข้อสอบจริง|ข้อในคลัง) (\d+) ข้อ/), d = p.textContent.match(/ทำแล้ว (\d+)/);
       hide(p); $('.sara .hd', app).insertAdjacentHTML('beforeend', '<span class="xcount">' + (d ? d[1] : 0) + '/' + (a ? a[1] : '') + '</span>');
     }
     var b1 = $('[data-go="sara"]', app), b2 = $('[data-go="rand"]', app); setT(b1, '▶ เริ่ม'); setT(b2, '⤨ สุ่ม');
@@ -292,9 +295,10 @@ function decorate() {
 }
 function aboutCounts() {
   var live = SUBS().filter(function (x) { return x.live && x.bank; }), n = 0, yr = {}; if (!live.length) return;
-  live.forEach(function (x) { n += x.bank.items.length; x.bank.items.forEach(function (it) { yr[it.year] = 1; }); });
+  var other = 0; live.forEach(function (x) { x.bank.items.forEach(function (it) { if (isReal(it)) { n++; yr[it.year] = 1; } else other++; }); });
   var y = Object.keys(yr).sort(), a = $('[data-ab="n"]', about), b = $('[data-ab="nt"]', about), c = $('[data-ab="s"]', about), d = $('[data-ab="st"]', about);
-  if (a) setT(a, String(n)); if (b) setT(b, 'ข้อสอบจริง ทปอ. ' + (y.length > 1 ? y[0] + '–' + y[y.length - 1] : y[0] || ''));
+  if (a) setT(a, String(n)); if (b) setT(b, 'ข้อสอบจริง ทปอ. ' + (y.length > 1 ? y[0] + '–' + y[y.length - 1] : y[0] || '') + (other ? ' + ข้อฝึก TGAT ' + other : ''));
+  var mt = $('[data-ab="mt"]', about); if (mt && live.length > 1) setT(mt, 'สอบจำลองจับเวลาเท่าสนามจริง ทุกวิชา');
   if (c) setT(c, String(live.length)); if (d) setT(d, live.length > 1 ? 'วิชา · ' + live.map(function (x) { return SHORTNAME[x.id] || x.name; }).join(' ') : 'สาระ · 17 หัวข้อ');
 }
 function schedule() { if (!pending) { pending = true; Promise.resolve().then(decorate); } }
