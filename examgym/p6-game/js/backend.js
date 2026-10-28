@@ -99,7 +99,7 @@
         .eq("student_id", student.id).eq("exam_set_id", setId).eq("meta->>game", "p6-stage-q");
       if (error) throw error;
       const by = {};
-      for (const a of data || []) { const k = a.meta.run; const r = by[k] || (by[k] = { band: a.meta.band, answered: 0, correct: 0, at: a.submitted_at, pos: new Set() });
+      for (const a of data || []) { const k = a.meta.run; const r = by[k] || (by[k] = { key: k, band: a.meta.band, answered: 0, correct: 0, at: a.submitted_at, pos: new Set() });
         if (r.pos.has(a.meta.position)) continue; r.pos.add(a.meta.position); r.answered++; r.correct += a.n_correct; if (a.submitted_at > r.at) r.at = a.submitted_at; }
       return Object.values(by);
     }
@@ -123,7 +123,7 @@
           answers: [{ item_id: s.item_ids[position], position, choice_index: choice, time_ms: timeMs | 0 }] } });
         if (error) throw error;
         const { data: rev, error: e2 } = await sb.rpc("p6_attempt_review", { p_attempt_id: att.id }); if (e2) throw e2;
-        const r = rev[0]; const cur = (await runs(setId)).find((x) => x.band === band && x.pos.has(position));
+        const r = rev[0]; const cur = (await runs(setId)).find((x) => x.key === key);   // this run only (a replay of the band must not read an older run)
         return { is_correct: r.is_correct, answer_index: r.answer_keys[0], explanation: r.explanation || [],
                  answered: cur.answered, correct: cur.correct, size: b.size, band_done: cur.answered >= b.size, band_passed: cur.answered >= b.size && cur.correct >= b.pass_needed };
       }

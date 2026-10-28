@@ -1,8 +1,8 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="screen-orientation" content="landscape"><meta name="robots" content="noindex">
+<meta name="theme-color" content="#FF2D55"><meta name="robots" content="noindex">
 <title>ปิยมิตร ป.6 ฝ่าด่านจุฬาภรณ์</title>
-<link rel="icon" href="data:,"><link rel="stylesheet" href="game.css"><link rel="stylesheet" href="p6game.css">
+<link rel="icon" href="data:,"><link rel="stylesheet" href="kruom-exam.css">
 <script src="config.js"></script>
 <script src="../p6-line/config.js"></script>
 <script>/* local test stack only */ if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) document.write('<script src="../p6-line/config.local.js"><\/script>');</script>
@@ -10,42 +10,10 @@
 <script src="../p6-line/js/vendor/supabase.js"></script>
 <script src="sound.js"></script>
 <script src="js/backend.js"></script>
+<script src="js/kruom-ui.js"></script>
 </head>
 <body data-world="science">
-<div class="screen" id="screen">
-  <div class="bg" id="bg" style="background-image:url(assets/sci_world_bg.jpg)"></div>
-  <div class="mode-badge" id="mode-badge" hidden></div>
-  <div class="hud">
-    <button class="back" id="btn-back" title="กลับแผนที่">‹</button>
-    <div class="avatar"></div>
-    <div class="chip"><div class="rankmini"></div><span id="who">…</span></div>
-    <div class="chip prog" id="chip-prog" hidden><span id="prog-txt">ข้อ 1/30</span><div class="bar"><i id="prog-bar" style="width:0%"></i></div></div>
-    <div class="spacer"></div>
-    <div class="chip band" id="chip-band" hidden></div>
-    <div class="chip score" id="chip-score" hidden><span class="ic" style="background:#c9ffe0">✔</span><span id="score-txt">0</span></div>
-    <button class="sound" id="btn-sound" title="ปิด/เปิดเสียง">🔊</button>
-  </div>
-  <div class="stagehead"><div class="t title-glow" id="stage-title">โลกวิทยาศาสตร์ ป.6</div><div class="s" id="stage-sub"></div></div>
-
-  <!-- stage map: 3 level tiles -->
-  <section class="view map" id="v-map" hidden>
-    <div class="worldtabs" id="worldtabs"></div>
-    <div class="tiles" id="tiles"></div>
-    <div class="npc-rim"></div><div class="npc"></div><div class="nameplate" id="map-npc"></div>
-    <div class="speech"><span class="tag">NPC ไกด์</span><p id="map-say"></p></div>
-  </section>
-
-  <!-- question (continuous) -->
-  <section class="view qv" id="v-q" hidden>
-    <div class="npc-rim"></div><div class="npc" id="q-npc"></div><div class="nameplate" id="q-npc-name"></div>
-    <div class="speech" id="speech"><span class="tag" id="q-tag">ข้อ 1</span><div class="meta" id="q-meta"></div><p class="q" id="q-stem"></p><div id="fb"></div></div>
-    <div class="answers" id="answers"></div>
-  </section>
-
-  <div class="modal-dim" id="dim" hidden></div>
-  <div class="dlg" id="dlg" hidden></div>
-  <div class="center" id="center" hidden><div class="box" id="center-box"></div></div>
-</div>
-<div class="rotate">📱↻ หมุนโทรศัพท์เป็นแนวนอนเพื่อเล่นเกม</div>
+<div class="p6-mode" id="mode-badge" hidden></div>
+<div id="app" aria-live="polite"><main class="eg-page"><div class="eg-empty"><b>กำลังโหลด…</b></div></main></div>
 <script src="js/game.js"></script>
 </body></html>
