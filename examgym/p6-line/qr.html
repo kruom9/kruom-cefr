@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>พิมพ์ QR เข้าสอบ · Exam Gym ป.6</title>
+<link rel="stylesheet" href="kruom.css">
+<style>
+ .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .sheet{display:grid;grid-template-columns:repeat(var(--cols,1),1fr);gap:10mm;margin-top:14px}
+ .qcard{background:#fff;border:2px dashed #94a3b8;border-radius:12px;padding:14px;text-align:center;break-inside:avoid}
+ .qcard img.qr{width:100%;max-width:260px;image-rendering:pixelated}.qcard .s{font-weight:700;font-size:18px}
+ .qcard .u{font-size:11px;word-break:break-all;color:#475569}.qcard .lg{width:48px}
+ @media print{.noprint{display:none!important}main{max-width:none;padding:0}.qcard{border-color:#000}}
+</style>
+</head>
+<body>
+<header class="top noprint"><img src="assets/piyamit-logo-256.png" class="logo" alt=""><div><div class="t1">พิมพ์ QR เข้าสอบ ป.6</div><div class="t2">สำหรับครู/โรงเรียน</div></div></header>
+<main>
+ <section class="noprint">
+  <label>ที่อยู่หน้าเข้าสอบ (URL ฐาน)<input id="base" class="inp"></label>
+  <label>โรงเรียน<select id="school" class="inp"></select></label>
+  <label>หรือพิมพ์รหัสโรงเรียนเอง (ตัวอักษร a–z, ตัวเลข, - , _)<input id="code" class="inp" placeholder="เช่น piyamit หรือ 1156100011"></label>
+  <div class="row">
+   <label>ห้อง/กลุ่ม (ไม่บังคับ)<input id="room" class="inp" placeholder="เช่น open-house-1"></label>
+   <label>ชุดข้อสอบ (ไม่บังคับ)<input id="exam" class="inp" placeholder="เช่น P6-ROOM-MA"></label>
+  </div>
+  <div class="row">
+   <label>จำนวนใบ<input id="copies" class="inp" type="number" min="1" max="40" value="1"></label>
+   <label>คอลัมน์ต่อหน้า<select id="cols" class="inp"><option>1</option><option selected>2</option><option>3</option></select></label>
+  </div>
+  <p class="small muted">QR จะชี้ไปที่: <code id="preview-url"></code></p>
+  <div class="row"><button id="btn-print" class="btn">พิมพ์</button><button id="btn-png" class="btn ghost">ดาวน์โหลด PNG</button></div>
+ </section>
+ <div id="sheet" class="sheet"></div>
+</main>
+<script src="config.js"></script>
+<script>if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) document.write('<script src="config.local.js"><\/script>');</script>
+<script src="js/vendor/qrcode.js"></script>
+<script src="js/kruom-schools.js"></script>
+<script src="js/vendor/supabase.js"></script>
+<script src="js/kruom-qr.js"></script>
+</body>
+</html>

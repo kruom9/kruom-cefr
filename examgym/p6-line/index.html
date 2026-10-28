@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>Exam Gym ป.6 · โรงเรียนปิยมิตรวิทยา</title>
+<link rel="icon" href="assets/piyamit-logo-256.png">
+<link rel="stylesheet" href="kruom.css">
+</head>
+<body>
+<header class="top">
+  <img src="assets/piyamit-logo-256.png" alt="" class="logo">
+  <div><div class="t1">Exam Gym ป.6</div><div class="t2">โรงเรียนปิยมิตรวิทยา ฝ่ายมัธยม</div></div>
+  <div id="who" class="who" hidden></div>
+</header>
+<main id="main">
+  <section id="s-loading" class="screen"><p class="muted">กำลังโหลด…</p></section>
+
+  <!-- 1. landing / login -->
+  <section id="s-landing" class="screen" hidden>
+    <h1>ฝึกทำข้อสอบเข้า ม.1</h1>
+    <p id="landing-school" class="chip" hidden></p>
+    <div id="landing-err" class="err" hidden></div>
+    <p>เข้าสู่ระบบด้วย LINE ของ<b>นักเรียน</b>หรือ<b>ผู้ปกครอง</b>ก็ได้ (LINE ของผู้ปกครอง 1 บัญชี เพิ่มพี่น้องได้หลายคน)</p>
+    <button id="btn-line" class="btn line">เข้าสู่ระบบด้วย LINE</button>
+    <details class="small"><summary>ข้อมูลที่เราใช้</summary>
+      <p>เราได้รับจาก LINE เฉพาะ <b>รหัสผู้ใช้ LINE</b> และ <b>ชื่อที่แสดง</b> (รูปโปรไฟล์แสดงบนหน้าจอเท่านั้น ไม่เก็บ)
+      ไม่ขอเลขบัตรประชาชน ไม่ขอเบอร์โทรศัพท์ ไม่ขออีเมล ไม่ขอรายชื่อเพื่อน</p>
+    </details>
+  </section>
+
+  <!-- 2. guardian consent (first time only) -->
+  <section id="s-consent" class="screen" hidden>
+    <h1>ความยินยอมของผู้ปกครอง</h1>
+    <div class="card"><img id="c-pic" class="pic" alt="" hidden><span id="c-name"></span></div>
+    <fieldset><legend>LINE นี้เป็นของใคร</legend>
+      <label class="opt"><input type="radio" name="holder" value="guardian"> ผู้ปกครอง (บิดา/มารดา/ผู้ปกครอง)</label>
+      <label class="opt"><input type="radio" name="holder" value="student"> นักเรียนเอง (ผู้ปกครองรับทราบและอนุญาตแล้ว)</label>
+    </fieldset>
+    <fieldset id="rel-box" hidden><legend>ความเกี่ยวข้องกับนักเรียน</legend>
+      <label class="opt"><input type="radio" name="rel" value="บิดา"> บิดา</label>
+      <label class="opt"><input type="radio" name="rel" value="มารดา"> มารดา</label>
+      <label class="opt"><input type="radio" name="rel" value="ผู้ปกครอง"> ผู้ปกครอง</label>
+    </fieldset>
+    <div class="consent" id="consent-text"></div>
+    <label class="opt strong"><input type="checkbox" id="chk-consent"> ข้าพเจ้าเป็นผู้ใช้อำนาจปกครอง/ผู้ปกครองของนักเรียน และยินยอมตามข้อความข้างต้น</label>
+    <label class="opt"><input type="checkbox" id="chk-push"> (ไม่บังคับ) ยินดีรับข่าวสาร/แจ้งเตือนการสอบทาง LINE OA @238nuqgh</label>
+    <div id="consent-err" class="err" hidden></div>
+    <button id="btn-consent" class="btn">ยอมรับและไปต่อ</button>
+    <button id="btn-consent-cancel" class="btn ghost">ไม่ยินยอม (ออกจากระบบ)</button>
+  </section>
+
+  <!-- 3. choose school -->
+  <section id="s-school" class="screen" hidden>
+    <h1>เลือกโรงเรียน (ที่เรียน ป.6 อยู่ตอนนี้)</h1>
+    <input id="school-q" class="inp" placeholder="พิมพ์ค้นหาชื่อโรงเรียน" autocomplete="off">
+    <div id="school-list" class="list"></div>
+  </section>
+
+  <!-- 4. choose grade + learner details -->
+  <section id="s-grade" class="screen" hidden>
+    <h1>เลือกชั้นเรียน</h1>
+    <p class="chip" id="grade-school"></p> <button id="btn-change-school" class="link">เปลี่ยนโรงเรียน</button>
+    <div id="other-box" hidden><label>ชื่อโรงเรียน<input id="school-other" class="inp" maxlength="120"></label></div>
+    <div id="grade-list" class="grades"></div>
+    <label>ชื่อ–นามสกุลนักเรียน<input id="full-name" class="inp" maxlength="80" placeholder="เช่น ด.ญ.มะลิ ใจดี" autocomplete="off"></label>
+    <p class="small muted">ไม่ต้องกรอกเลขประจำตัวประชาชนหรือเบอร์โทรศัพท์</p>
+    <div id="grade-err" class="err" hidden></div>
+    <button id="btn-register" class="btn">เริ่มฝึกทำข้อสอบ</button>
+  </section>
+
+  <!-- 5. pick learner (siblings) -->
+  <section id="s-pick" class="screen" hidden>
+    <h1>ใครจะทำข้อสอบ</h1>
+    <div id="pick-list" class="list"></div>
+    <button id="btn-add-child" class="btn ghost">+ เพิ่มนักเรียนอีกคน (พี่/น้อง)</button>
+  </section>
+
+  <!-- 6. exams -->
+  <section id="s-exams" class="screen" hidden>
+    <h1>ชุดข้อสอบ ป.6</h1>
+    <p class="chip" id="exams-student"></p> <button id="btn-switch" class="link" hidden>เปลี่ยนนักเรียน</button>
+    <div id="exam-list" class="list"></div>
+    <h2>ผลล่าสุด</h2><div id="hist" class="list small"></div>
+    <button id="btn-settings" class="link">ข้อมูลของฉัน / ลบข้อมูล</button>
+  </section>
+
+  <!-- 7. exam -->
+  <section id="s-exam" class="screen" hidden>
+    <h1 id="exam-title"></h1>
+    <p class="muted small" id="exam-meta"></p>
+    <form id="exam-form"></form>
+    <div id="exam-err" class="err" hidden></div>
+    <button id="btn-submit" class="btn">ส่งคำตอบ</button>
+    <button id="btn-exam-back" class="btn ghost">กลับ</button>
+  </section>
+
+  <!-- 8. result -->
+  <section id="s-result" class="screen" hidden>
+    <h1>ผลการสอบ</h1>
+    <div id="result-box" class="score"></div>
+    <div id="review" class="list"></div>
+    <button id="btn-result-back" class="btn">กลับไปหน้าชุดข้อสอบ</button>
+  </section>
+
+  <!-- 9. settings / PDPA -->
+  <section id="s-settings" class="screen" hidden>
+    <h1>ข้อมูลของฉัน</h1>
+    <div id="me-box" class="list small"></div>
+    <label class="opt"><input type="checkbox" id="set-push"> รับข่าวสารทาง LINE OA @238nuqgh</label>
+    <button id="btn-del-one" class="btn ghost">ลบข้อมูลนักเรียนคนนี้</button>
+    <button id="btn-del-all" class="btn danger">ลบข้อมูลทั้งหมดและบัญชีนี้</button>
+    <button id="btn-logout" class="btn ghost">ออกจากระบบ</button>
+    <button id="btn-settings-back" class="link">กลับ</button>
+    <div id="set-msg" class="muted small"></div>
+  </section>
+</main>
+<footer class="foot small muted">ผู้ควบคุมข้อมูลส่วนบุคคล: โรงเรียนปิยมิตรวิทยา อ.เชียงคำ จ.พะเยา · <a href="qr.html">พิมพ์ QR</a></footer>
+<script src="config.js"></script>
+<script>/* local test stack only */ if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) document.write('<script src="config.local.js"><\/script>');</script>
+<script src="js/vendor/supabase.js"></script>
+<script src="js/kruom-consent.js"></script>
+<script src="js/kruom-app.js"></script>
+</body>
+</html>
